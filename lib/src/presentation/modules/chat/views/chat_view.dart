@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/controllers/chat_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/chat_message_item.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 
-class ChatView extends StatelessWidget {
+class ChatView extends BaseResponsiveStatelessWidget {
   final ChatController _controller;
   ChatView({
     super.key,
@@ -12,8 +13,13 @@ class ChatView extends StatelessWidget {
   }) : _controller = ChatController(username: username, files: files);
 
   @override
-  Widget build(BuildContext context) {
+  void initState(BuildContext context) {
+    super.initState(context);
     _controller.init(context);
+  }
+
+  @override
+  Widget defaultWidget(BuildContext context) {
     return Scaffold(appBar: _appBar, body: _body);
   }
 

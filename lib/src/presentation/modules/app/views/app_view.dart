@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/components/loading_screen.dart';
 import 'package:ig_chat_reader/src/presentation/modules/app/controllers/app_controller.dart';
 import 'package:ig_chat_reader/src/presentation/router/router.dart';
@@ -19,16 +20,19 @@ class MyApp extends StatelessWidget {
       initialRoute: AppRouter.initialRoute,
       onGenerateRoute: AppRouter.generateRoutes,
       builder: (context, child) {
-        return StreamBuilder<bool>(
-          stream: _controller.loading.stream,
-          builder: (context, snapshot) {
-            return Stack(
-              children: [
-                child ?? const SizedBox.shrink(),
-                if (!snapshot.hasData || snapshot.data!) const LoadingScreen(),
-              ],
-            );
-          },
+        return MediaQueryUpdateWrapper(
+          child: StreamBuilder<bool>(
+            stream: _controller.loading.stream,
+            builder: (context, snapshot) {
+              return Stack(
+                children: [
+                  child ?? const SizedBox.shrink(),
+                  if (!snapshot.hasData || snapshot.data!)
+                    const LoadingScreen(),
+                ],
+              );
+            },
+          ),
         );
       },
     );

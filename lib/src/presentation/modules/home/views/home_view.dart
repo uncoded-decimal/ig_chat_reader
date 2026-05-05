@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends BaseResponsiveStatelessWidget {
   final HomeController _controller;
   HomeView({super.key}) : _controller = HomeController();
 
   @override
-  Widget build(BuildContext context) {
+  void initState(BuildContext context) {
+    super.initState(context);
     _controller.init(context);
+  }
+
+  @override
+  Widget defaultWidget(BuildContext context) {
     return Scaffold(body: _body);
   }
 
