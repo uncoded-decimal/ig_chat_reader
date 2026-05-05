@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -123,7 +122,7 @@ abstract class BaseResponsiveStatelessWidget extends StatelessWidget {
       ..writeln("|| - ScreenDensity: ${updateScaleFactor.screenDensity.name}")
       ..writeln("||")
       ..writeln("===========================");
-    log(layoutChangeData.toString());
+    // log(layoutChangeData.toString());
   }
 
   @override

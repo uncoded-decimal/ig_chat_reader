@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Element;
 import 'package:html/dom.dart' show Element;
 import 'package:html/parser.dart';
+import 'package:ig_chat_reader/src/presentation/helpers/extensions/rxdart_extension.dart';
 import 'package:ig_chat_reader/src/presentation/modules/app/mixins/app_ops_mixin.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
@@ -26,15 +27,11 @@ class ChatController with AppOpsMixin {
   final List<FileModel> _chatFiles = [];
   final List<String> _loadedFileIDs = [];
 
+  final BehaviorSubject<Set<String>> namesFound = BehaviorSubject();
+  final BehaviorSubject<String> myName = BehaviorSubject();
+
   final BehaviorSubject<List<MessageModel>> chatMessagesSubject =
       BehaviorSubject();
-
-  bool isMe(String username) {
-    // case changes
-    final isOtherPerson =
-        username.toLowerCase().replaceAll(' ', '') == this.username;
-    return !isOtherPerson;
-  }
 
   bool get hasMoreContent => _loadedFileIDs.length < _chatFiles.length;
 
@@ -132,6 +129,8 @@ class ChatController with AppOpsMixin {
     final contents = utf8.decode(fileData);
     final messagesList = await __processHTMLContent(contents);
 
+    ___setupMyName();
+
     final updatedChatMessagesList =
         (chatMessagesSubject.valueOrNull ?? [])..addAll(messagesList);
 
@@ -140,7 +139,15 @@ class ChatController with AppOpsMixin {
     setGlobalLoading(false);
   }
 
+  void ___setupMyName() async {
+    final differentName = (await namesFound.waitUntilValue()).firstWhere(
+      (name) => name.replaceAll(' ', '').toLowerCase() != username,
+    );
+    myName.sink.add(differentName);
+  }
+
   Future<List<MessageModel>> __processHTMLContent(String content) async {
+    final Set<String> usernamesFound = {username};
     List<MessageModel> messages = [];
     final htmlDocument = await compute(parse, content);
     final elementsList = htmlDocument.getElementsByClassName('_a706');
@@ -152,6 +159,7 @@ class ChatController with AppOpsMixin {
           continue;
         }
         final model = MessageModel.fromMessageElement(child);
+        usernamesFound.add(model.username);
         if (model.content.htmlMessage.isNotEmpty) {
           // only adds chat messages with some content
           if (model.content.media.isNotEmpty) {
@@ -188,6 +196,7 @@ class ChatController with AppOpsMixin {
         }
       }
     }
+    namesFound.sink.add(usernamesFound);
     return messages;
   }
 
@@ -223,5 +232,12 @@ class ChatController with AppOpsMixin {
         'onClick': (String url) => window.open(url, 'new'),
       },
     );
+  }
+
+  void onNameChange(String? value) {
+    if (value == null) {
+      return;
+    }
+    myName.sink.add(value);
   }
 }
