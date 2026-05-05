@@ -3,9 +3,9 @@
     "short_name": "ig_chat_reader",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#fff",
+    "theme_color": "#000",
+    "description": "Instagram Chat Reader to simplify reading HTML exports of user messaging data.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
