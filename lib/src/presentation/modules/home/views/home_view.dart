@@ -14,8 +14,28 @@ class HomeView extends BaseResponsiveStatelessWidget {
 
   @override
   Widget defaultWidget(BuildContext context) {
-    return Scaffold(body: _body);
+    return Scaffold(appBar: _appBar, body: _body);
   }
+
+  AppBar get _appBar => AppBar(
+    toolbarHeight: 120,
+    automaticallyImplyLeading: false,
+    centerTitle: false,
+    title: RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: 'Instagram',
+            style: TextStyle(fontSize: 64, fontWeight: FontWeight.w400),
+          ),
+          TextSpan(
+            text: '\nChat Reader',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    ),
+  );
 
   Widget get _body => StreamBuilder(
     stream: _controller.userNames.stream,
@@ -25,6 +45,16 @@ class HomeView extends BaseResponsiveStatelessWidget {
       }
       return SingleChildScrollView(
         child: Table(
+          columnWidths: {
+            0: FlexColumnWidth(switch (currentLayoutMode) {
+              LayoutMode.mobile => 2,
+              LayoutMode.desktop => 4,
+              (_) => 3,
+            }),
+            1: FlexColumnWidth(1),
+            2: FlexColumnWidth(1),
+            3: FlexColumnWidth(1),
+          },
           border: TableBorder(
             horizontalInside: BorderSide(color: Colors.black26),
           ),
@@ -46,12 +76,13 @@ class HomeView extends BaseResponsiveStatelessWidget {
       padding: const EdgeInsets.all(20),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Colors.blueGrey.shade200,
+        color: Colors.blueGrey.shade100,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Text(
-        'Click here to select your ZIP archive',
-        style: TextStyle(fontSize: 36),
+        'Upload your Instagram downloaded archive here',
+        style: TextStyle(fontSize: 36, fontWeight: FontWeight.w100),
+        textAlign: TextAlign.center,
       ),
     ),
   );
