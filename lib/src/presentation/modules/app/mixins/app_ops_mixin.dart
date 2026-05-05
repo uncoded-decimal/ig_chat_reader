@@ -3,4 +3,6 @@ import 'package:ig_chat_reader/src/presentation/modules/app/controllers/app_cont
 mixin AppOpsMixin {
   void setGlobalLoading(bool loading) =>
       AppController.instance.loading.sink.add(loading);
+
+  void showGitHub() => AppController.instance.showDeveloperProfile();
 }

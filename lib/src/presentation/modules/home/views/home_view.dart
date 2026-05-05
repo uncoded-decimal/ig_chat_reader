@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
+import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
 
 class HomeView extends BaseResponsiveStatelessWidget {
@@ -16,7 +17,26 @@ class HomeView extends BaseResponsiveStatelessWidget {
   Widget defaultWidget(BuildContext context) {
     return PopScope(
       canPop: false,
-      child: Scaffold(appBar: _appBar, body: _body),
+      child: Scaffold(
+        appBar: _appBar,
+        body: _body,
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          color: Colors.blueGrey.shade100,
+          child: Row(
+            children: [
+              TextButton(
+                onPressed: () {},
+                child: Text('Version 1.0.0', style: TextStyle(fontSize: 12)),
+              ),
+              TextButton(
+                onPressed: _controller.requestHelp,
+                child: Text('Need Help?', style: TextStyle(fontSize: 12)),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -24,19 +44,30 @@ class HomeView extends BaseResponsiveStatelessWidget {
     toolbarHeight: 120,
     automaticallyImplyLeading: false,
     centerTitle: false,
-    title: RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: 'Instagram',
-            style: TextStyle(fontSize: 64, fontWeight: FontWeight.w400),
+    title: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (currentLayoutMode != LayoutMode.mobile)
+          ResponsiveGraphicView.vector(
+            path: 'assets/vectors/ig_chat_reader.svg',
+            fit: BoxFit.contain,
+            height: 60,
           ),
-          TextSpan(
-            text: '\nChat Reader',
-            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+        RichText(
+          text: TextSpan(
+            children: [
+              TextSpan(
+                text: 'Instagram',
+                style: TextStyle(fontSize: 64, fontWeight: FontWeight.w400),
+              ),
+              TextSpan(
+                text: '\nChat Reader',
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     ),
   );
 

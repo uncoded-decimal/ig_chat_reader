@@ -172,4 +172,6 @@ class HomeController with AppOpsMixin {
       arguments: {'username': username, 'files': userData},
     );
   }
+
+  void requestHelp() => showGitHub();
 }
