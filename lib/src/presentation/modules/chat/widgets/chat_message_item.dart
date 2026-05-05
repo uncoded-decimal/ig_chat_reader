@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
+import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/resources/strings.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
@@ -106,34 +107,37 @@ class ChatMessageItem extends StatelessWidget {
           ? Html(data: chatMessage.content.htmlMessage, shrinkWrap: true)
           : const SizedBox.shrink();
 
-  Widget get _attachments => SizedBox(
-    height: chatMessage.content.media.isNotEmpty ? 100 : 0,
-    child: ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      shrinkWrap: true,
-      scrollDirection: Axis.horizontal,
-      itemBuilder: (_, index) {
-        final link = chatMessage.content.media.elementAt(index);
-        final files = chatMessage.files.where(
-          // this matches only the file name without extension
-          // to allow matches against malformed URLs
-          (fileItem) => link.contains(fileItem.fileId.split('.').first),
-        );
-        final targetFile = files.isEmpty ? null : files.first;
-        return AttachmentTile(
-          link: link,
-          file: targetFile,
-          onClick:
-              () => onAttachmentClick(
-                chatMessage.content.media.elementAt(index),
-                targetFile,
-              ),
-        );
-      },
-      separatorBuilder: (_, _) => const SizedBox(width: 8),
-      itemCount: chatMessage.content.media.length,
-    ),
-  );
+  Widget get _attachments =>
+      chatMessage.content.media.isNotEmpty
+          ? ConstrainedBox(
+            constraints: BoxConstraints(minHeight: 100, maxHeight: 200),
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              shrinkWrap: true,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (_, index) {
+                final link = chatMessage.content.media.elementAt(index);
+                final files = chatMessage.files.where(
+                  // this matches only the file name without extension
+                  // to allow matches against malformed URLs
+                  (fileItem) => link.contains(fileItem.fileId.split('.').first),
+                );
+                final targetFile = files.isEmpty ? null : files.first;
+                return AttachmentTile(
+                  link: link,
+                  file: targetFile,
+                  onClick:
+                      () => onAttachmentClick(
+                        chatMessage.content.media.elementAt(index),
+                        targetFile,
+                      ),
+                );
+              },
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemCount: chatMessage.content.media.length,
+            ),
+          )
+          : const SizedBox.shrink();
 
   Widget get _reactions =>
       chatMessage.content.reactions.isEmpty
@@ -165,14 +169,14 @@ class AttachmentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onClick,
-      child: Container(
-        height: 160,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.black26),
+      child: LimitedBox(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.black26),
+          ),
+          child: AspectRatio(aspectRatio: 3 / 4, child: _attachmentPreview),
         ),
-        clipBehavior: Clip.hardEdge,
-        child: AspectRatio(aspectRatio: 3 / 4, child: _attachmentPreview),
       ),
     );
   }
@@ -181,9 +185,9 @@ class AttachmentTile extends StatelessWidget {
       file != null
           ? switch (file!.type) {
             FileType.audio => Icon(Icons.audio_file),
-            FileType.photo => Image.network(
-              file!.blobUrl!,
-              width: double.maxFinite,
+            FileType.photo => ResponsiveGraphicView.image(
+              path: file!.blobUrl!,
+              width: 150,
               fit: BoxFit.cover,
             ),
             FileType.video => Icon(Icons.play_arrow),
