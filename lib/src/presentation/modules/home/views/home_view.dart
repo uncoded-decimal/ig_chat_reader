@@ -27,7 +27,7 @@ class HomeView extends BaseResponsiveStatelessWidget {
             children: [
               TextButton(
                 onPressed: () {},
-                child: Text('Version 1.0.0', style: TextStyle(fontSize: 12)),
+                child: Text('Version 1.0.1', style: TextStyle(fontSize: 12)),
               ),
               TextButton(
                 onPressed: _controller.requestHelp,
