@@ -170,8 +170,10 @@ class AttachmentTile extends StatelessWidget {
     return InkWell(
       onTap: onClick,
       child: LimitedBox(
-        child: DecoratedBox(
+        child: Container(
+          clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
+            color: Colors.white70,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: Colors.black26),
           ),
@@ -196,7 +198,8 @@ class AttachmentTile extends StatelessWidget {
           }
           : Container(
             alignment: Alignment.center,
-            color: Colors.amber.shade600,
+            color: Colors.amber.shade200,
+            padding: const EdgeInsets.all(16),
             child: Text(
               __getAttachmentTypeFromLink(link),
               style: TextStyle(fontSize: 12),
