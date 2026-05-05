@@ -1,6 +1,6 @@
 # ig_chat_reader
 
-A new Flutter project.
+Instagram Chat Reader to simplify reading HTML exports of user messaging data.
 
 ## Getting Started
 
