@@ -76,16 +76,72 @@ class HomeView extends BaseResponsiveStatelessWidget {
     onTap: _controller.pickFile,
     child: Container(
       margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
+      padding: switch (currentLayoutMode) {
+        LayoutMode.mobile => const EdgeInsets.all(24),
+        (_) => const EdgeInsets.all(64),
+      },
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Colors.blueGrey.shade100,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: Text(
-        'Upload your Instagram downloaded archive here',
-        style: TextStyle(fontSize: 36, fontWeight: FontWeight.w100),
-        textAlign: TextAlign.center,
+      child: Column(
+        spacing: 16,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Upload your Instagram archive here',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w100),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            'You can request an HTML export of your data using the Instagram app or website to view and browse your DM\'s using this tool',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+              color: Colors.black54,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            '- 100% Free Tool',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            '- No Data leaves your device',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            '- Privacy-focused',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w300,
+              color: Colors.black87,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Drag & Drop your archive here or Click anywhere to get started',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: Colors.black38,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     ),
   );
