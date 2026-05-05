@@ -1,0 +1,97 @@
+import 'package:flutter/material.dart';
+import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
+
+class HomeView extends StatelessWidget {
+  final HomeController _controller;
+  HomeView({super.key}) : _controller = HomeController();
+
+  @override
+  Widget build(BuildContext context) {
+    _controller.init(context);
+    return Scaffold(body: _body);
+  }
+
+  Widget get _body => StreamBuilder(
+    stream: _controller.userNames.stream,
+    builder: (context, snapshot) {
+      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        return _emptyView;
+      }
+      return SingleChildScrollView(
+        child: Table(
+          border: TableBorder(
+            horizontalInside: BorderSide(color: Colors.black26),
+          ),
+          children: [
+            _tableTitle,
+            ...snapshot.data!.map(
+              (username) => _getUserNameRow(context, username),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+
+  Widget get _emptyView => InkWell(
+    onTap: _controller.pickFile,
+    child: Container(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(20),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.shade200,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Text(
+        'Click here to select your ZIP archive',
+        style: TextStyle(fontSize: 36),
+      ),
+    ),
+  );
+
+  TableRow get _tableTitle => TableRow(
+    decoration: BoxDecoration(color: Colors.amber.shade100),
+    children:
+        ['username', 'images', 'audio', 'videos']
+            .map(
+              (item) => Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 16,
+                ),
+                child: Text(
+                  item.toUpperCase(),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                ),
+              ),
+            )
+            .toList(),
+  );
+
+  TableRow _getUserNameRow(BuildContext context, String username) => TableRow(
+    children:
+        [
+              username,
+              _controller.getImagesCountForUsername(username),
+              _controller.getAudioCountForUsername(username),
+              _controller.getVideosCountForUsername(username),
+            ]
+            .map(
+              (item) => InkWell(
+                onTap: () => _controller.onUsernameClicked(context, username),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8,
+                    horizontal: 16,
+                  ),
+                  child: Text(
+                    item.toString(),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+  );
+}

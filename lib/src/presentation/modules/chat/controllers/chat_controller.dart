@@ -1,0 +1,227 @@
+import 'dart:convert';
+import 'dart:js_interop';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' hide Element;
+import 'package:html/dom.dart' show Element;
+import 'package:html/parser.dart';
+import 'package:ig_chat_reader/src/presentation/modules/app/mixins/app_ops_mixin.dart';
+import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
+import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
+import 'package:ig_chat_reader/src/presentation/router/routes.dart';
+import 'package:rxdart/subjects.dart';
+import 'package:web/web.dart' hide Element, Navigator;
+
+class ChatController with AppOpsMixin {
+  final String username;
+  final List<FileModel> files;
+  late final NavigatorState _navigator;
+
+  ChatController({required this.username, required this.files});
+
+  late HTMLMediaElement audioMediaElement;
+  late AudioContext audioContext;
+  late HTMLButtonElement playButtonElement;
+
+  final List<FileModel> _chatFiles = [];
+  final List<String> _loadedFileIDs = [];
+
+  final BehaviorSubject<List<MessageModel>> chatMessagesSubject =
+      BehaviorSubject();
+
+  bool isMe(String username) {
+    // case changes
+    final isOtherPerson =
+        username.toLowerCase().replaceAll(' ', '') == this.username;
+    return !isOtherPerson;
+  }
+
+  bool get hasMoreContent => _loadedFileIDs.length < _chatFiles.length;
+
+  List<FileModel> get allPhotos =>
+      files
+          .where((file) => file.type == FileType.photo)
+          .toList()
+          .reversed
+          .toList();
+
+  void init(BuildContext context) {
+    _navigator = Navigator.of(context);
+    _setupAudioPlayer();
+    _processChat();
+  }
+
+  void _setupAudioPlayer() {
+    playButtonElement = HTMLButtonElement()..className = 'paused';
+    audioMediaElement = HTMLAudioElement();
+    audioContext = AudioContext();
+
+    document.body
+      ?..appendChild(audioMediaElement)
+      ..appendChild(playButtonElement);
+
+    final source = audioContext.createMediaElementSource(audioMediaElement);
+    source.connect(audioContext.destination);
+
+    playButtonElement.addEventListener(
+      "click",
+      (Event _) {
+        if (playButtonElement.classList.contains("paused")) {
+          audioContext.resume().toDart.then((_) {
+            playButtonElement.classList
+              ..remove("paused")
+              ..add("playing");
+            audioMediaElement.play();
+          });
+        } else if (playButtonElement.classList.contains("playing")) {
+          audioContext.suspend().toDart.then((_) {
+            playButtonElement.classList
+              ..add("paused")
+              ..remove("playing");
+            audioMediaElement.pause();
+          });
+        }
+      }.toJS,
+    );
+
+    // https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement#events
+    audioMediaElement.addEventListener(
+      "ended",
+      (Event _) {
+        URL.revokeObjectURL(audioMediaElement.src);
+        playButtonElement.classList
+          ..add("paused")
+          ..remove("playing");
+      }.toJS,
+    );
+  }
+
+  void _processChat() async {
+    // reversing because messages_2 is later than messages_1
+    final chatFiles =
+        files.where((file) => file.type == FileType.html).toList().reversed;
+    _chatFiles.addAll(chatFiles);
+    // in case chat exists through multiple files, load them one by one
+    __loadFile(_chatFiles.first.fileId);
+  }
+
+  void loadNext() {
+    for (FileModel file in _chatFiles) {
+      if (_loadedFileIDs.contains(file.fileId)) {
+        continue;
+      }
+      __loadFile(file.fileId);
+      break;
+    }
+  }
+
+  void __loadFile(String fileID) async {
+    if (_loadedFileIDs.contains(fileID)) {
+      debugPrint('Already loaded $fileID');
+      return;
+    }
+
+    setGlobalLoading(true);
+    debugPrint('loading file $fileID');
+    final fileByFileID = _chatFiles.where((file) => file.fileId == fileID);
+    final fileData = fileByFileID.firstOrNull?.fileData;
+    if (fileByFileID.isEmpty || fileData == null) {
+      debugPrint('File empty');
+      return;
+    }
+    final contents = utf8.decode(fileData);
+    final messagesList = await __processHTMLContent(contents);
+
+    final updatedChatMessagesList =
+        (chatMessagesSubject.valueOrNull ?? [])..addAll(messagesList);
+
+    chatMessagesSubject.sink.add(updatedChatMessagesList);
+    _loadedFileIDs.add(fileID);
+    setGlobalLoading(false);
+  }
+
+  Future<List<MessageModel>> __processHTMLContent(String content) async {
+    List<MessageModel> messages = [];
+    final htmlDocument = await compute(parse, content);
+    final elementsList = htmlDocument.getElementsByClassName('_a706');
+    for (Element element in elementsList) {
+      // reversing here so all is in order
+      for (Element child in element.children.reversed) {
+        if (child.className == '_7s7q') {
+          // skip adding html file links
+          continue;
+        }
+        final model = MessageModel.fromMessageElement(child);
+        if (model.content.htmlMessage.isNotEmpty) {
+          // only adds chat messages with some content
+          if (model.content.media.isNotEmpty) {
+            // traverse and add from files wherever found
+            // by matching for included fileID (name + extension)
+            for (String mediaLink in model.content.media) {
+              // some images do not have an extension by default
+              final isMalformedMediaLink =
+                  !mediaLink.contains('http') && !mediaLink.contains('.');
+              if (isMalformedMediaLink) {
+                debugPrint('\nMalformed $mediaLink');
+                final keyToSearchFor = mediaLink.substring(
+                  mediaLink.lastIndexOf('/') + 1,
+                );
+                final filesFound = files.where(
+                  (file) => file.fileId.contains(keyToSearchFor),
+                );
+                for (var e in filesFound) {
+                  debugPrint('adding files =${e.blobUrl}');
+                }
+                model.files.addAll(filesFound);
+              } else {
+                final filesFound = files.where((file) {
+                  final adding =
+                      file.type != FileType.html &&
+                      mediaLink.contains(file.fileId);
+                  return adding;
+                });
+                model.files.addAll(filesFound);
+              }
+            }
+          }
+          messages.add(model);
+        }
+      }
+    }
+    return messages;
+  }
+
+  void onAttachmentClick(String? link, FileModel? file) async {
+    if (file != null) {
+      // process file here
+      if (file.type == FileType.audio) {
+        playAudio(file.blobUrl!);
+      } else if (file.type == FileType.video) {
+        window.open(file.blobUrl!, 'new');
+      } else if (file.type == FileType.photo) {
+        window.open(file.blobUrl!, 'new');
+      }
+      return;
+    }
+
+    // if not file, a link
+    if (link != null) {
+      window.open(link, 'new');
+    }
+  }
+
+  void playAudio(String src) {
+    audioMediaElement.src = src;
+    playButtonElement.click();
+  }
+
+  void viewAllPhotos() {
+    _navigator.pushNamed(
+      AppRoutes.allChatPhotos,
+      arguments: {
+        'photos': allPhotos,
+        'onClick': (String url) => window.open(url, 'new'),
+      },
+    );
+  }
+}

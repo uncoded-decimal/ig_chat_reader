@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "ig_chat_reader (no security)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "deviceId": "chrome",
+            "toolArgs": [
+                "--web-browser-flag=--disable-web-security",
+                "--web-browser-flag=--user-data-dir=/tmp/chrome_dev_session",
+                "--web-browser-flag=--disable-site-isolation-trials"
+            ]
+        }
+    ]
+}
