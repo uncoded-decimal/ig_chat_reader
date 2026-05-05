@@ -141,6 +141,10 @@ class HomeController with AppOpsMixin {
   }
 
   void ___processChat(ChatModel chatModel) {
+    if (chatModel.usernames.isEmpty) {
+      window.alert('Please select a valid file');
+      return;
+    }
     _chat = chatModel;
     userNames.sink.add(chatModel.usernames);
   }
