@@ -145,8 +145,12 @@ class HomeController with AppOpsMixin {
       window.alert('Please select a valid file');
       return;
     }
-    _chat = chatModel;
-    userNames.sink.add(chatModel.usernames);
+    try {
+      _chat = chatModel;
+      userNames.sink.add(chatModel.usernames);
+    } catch (e) {
+      window.alert('Refresh window to upload again');
+    }
   }
 
   int getAudioCountForUsername(String username) =>

@@ -14,7 +14,10 @@ class HomeView extends BaseResponsiveStatelessWidget {
 
   @override
   Widget defaultWidget(BuildContext context) {
-    return Scaffold(appBar: _appBar, body: _body);
+    return PopScope(
+      canPop: false,
+      child: Scaffold(appBar: _appBar, body: _body),
+    );
   }
 
   AppBar get _appBar => AppBar(
