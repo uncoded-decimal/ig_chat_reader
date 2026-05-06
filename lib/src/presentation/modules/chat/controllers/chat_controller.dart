@@ -140,10 +140,19 @@ class ChatController with AppOpsMixin {
   }
 
   void ___setupMyName() async {
-    final differentName = (await namesFound.waitUntilValue()).firstWhere(
+    final namesInChat = await namesFound.waitUntilValue();
+    final storedName = getUsername();
+    if (storedName.isNotEmpty && namesInChat.contains(storedName)) {
+      myName.sink.add(storedName);
+      return;
+    }
+
+    final differentName = namesInChat.firstWhere(
       (name) => name.replaceAll(' ', '').toLowerCase() != username,
+      orElse: () => namesInChat.first,
     );
     myName.sink.add(differentName);
+    onNameChange(differentName);
   }
 
   Future<List<MessageModel>> __processHTMLContent(String content) async {
@@ -239,5 +248,6 @@ class ChatController with AppOpsMixin {
       return;
     }
     myName.sink.add(value);
+    setUsername(value);
   }
 }
