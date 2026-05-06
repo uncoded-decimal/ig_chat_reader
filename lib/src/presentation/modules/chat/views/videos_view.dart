@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
+import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/video_tile.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 
 class AllVideosView extends BaseResponsiveStatelessWidget {
@@ -29,10 +30,7 @@ class AllVideosView extends BaseResponsiveStatelessWidget {
     itemBuilder:
         (context, index) => InkWell(
           onTap: () => onClick(videos.elementAt(index).blobUrl!),
-          child: DecoratedBox(
-            decoration: BoxDecoration(color: Colors.black12),
-            child: Icon(Icons.play_arrow),
-          ),
+          child: VideoTile(videoUrl: videos.elementAt(index).blobUrl!),
         ),
   );
 }
