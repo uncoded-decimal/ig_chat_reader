@@ -69,6 +69,7 @@ class ChatMessageItem extends StatelessWidget {
     ),
     child: Column(
       spacing: 8,
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment:
           isMyMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
@@ -110,7 +111,7 @@ class ChatMessageItem extends StatelessWidget {
   Widget get _attachments =>
       chatMessage.content.media.isNotEmpty
           ? ConstrainedBox(
-            constraints: BoxConstraints(minHeight: 100, maxHeight: 200),
+            constraints: BoxConstraints(minHeight: 50, maxHeight: 200),
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               shrinkWrap: true,
@@ -167,46 +168,116 @@ class AttachmentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onClick,
-      child: LimitedBox(
-        child: Container(
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            color: Colors.white70,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.black26),
-          ),
-          child: AspectRatio(aspectRatio: 3 / 4, child: _attachmentPreview),
-        ),
-      ),
-    );
+    return InkWell(onTap: onClick, child: _attachmentPreview);
   }
 
   Widget get _attachmentPreview =>
-      file != null
-          ? switch (file!.type) {
-            FileType.audio => Icon(Icons.audio_file),
-            FileType.photo => ResponsiveGraphicView.image(
-              path: file!.blobUrl!,
-              width: 150,
-              fit: BoxFit.cover,
-            ),
-            FileType.video => Icon(Icons.play_arrow),
-            FileType.html => Icon(Icons.error_outline),
-            FileType.unknown => Icon(Icons.error_outline),
-          }
-          : Container(
-            alignment: Alignment.center,
-            color: Colors.amber.shade200,
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              __getAttachmentTypeFromLink(link),
-              style: TextStyle(fontSize: 12),
-            ),
-          );
+      file != null || link.contains('giphy')
+          ? __recognisedItem
+          : __unrecognisedLink;
 
-  String __getAttachmentTypeFromLink(String link) {
+  Widget get __recognisedItem =>
+      link.contains('giphy')
+          ? ___gifTile
+          : switch (file!.type) {
+            FileType.audio => ___audioTile,
+            FileType.photo => ___imageTile,
+            FileType.video => ___videoTile,
+            (_) => Container(
+              decoration: BoxDecoration(
+                color: Colors.white70,
+                border: Border.all(color: Colors.black26),
+              ),
+              child: Icon(Icons.error_outline),
+            ),
+          };
+
+  Widget get ___gifTile => Container(
+    height: 100,
+    clipBehavior: Clip.hardEdge,
+    decoration: BoxDecoration(
+      color: Colors.white70,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    foregroundDecoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    child: ResponsiveGraphicView.image(path: link, fit: BoxFit.cover),
+  );
+
+  Widget get ___imageTile => Container(
+    height: 250,
+    clipBehavior: Clip.hardEdge,
+    decoration: BoxDecoration(
+      color: Colors.white70,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    foregroundDecoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    child: ResponsiveGraphicView.image(
+      path: file!.blobUrl!,
+      fit: BoxFit.contain,
+    ),
+  );
+
+  Widget get ___audioTile => Container(
+    width: 150,
+    clipBehavior: Clip.hardEdge,
+    decoration: BoxDecoration(
+      color: Colors.white70,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    foregroundDecoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    child: Icon(Icons.audio_file),
+  );
+
+  Widget get ___videoTile => Container(
+    width: 150,
+    clipBehavior: Clip.hardEdge,
+    decoration: BoxDecoration(
+      color: Colors.white70,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    foregroundDecoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: Colors.black26),
+    ),
+    child: Icon(Icons.play_arrow),
+  );
+
+  Widget get __unrecognisedLink => AspectRatio(
+    aspectRatio: 3 / 4,
+    child: Container(
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black26),
+        color: Colors.amber.shade100,
+      ),
+      foregroundDecoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black26),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Text(
+        ___getAttachmentTypeFromLink(link),
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        textAlign: TextAlign.center,
+      ),
+    ),
+  );
+
+  String ___getAttachmentTypeFromLink(String link) {
     if (link.contains('reel')) {
       return 'Reel';
     } else if (link.contains('/p/')) {
@@ -215,6 +286,10 @@ class AttachmentTile extends StatelessWidget {
       return 'Story';
     } else if (link.contains('giphy')) {
       return 'GIF';
+    } else if (link.contains('/_u/')) {
+      return 'Instagram User';
+    } else if (RegExp(r'https://www.instagram.com/.+').hasMatch(link)) {
+      return 'Instagram Profile';
     } else {
       return link;
     }
