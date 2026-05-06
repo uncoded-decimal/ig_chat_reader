@@ -1,9 +1,11 @@
+import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/modules/app/mixins/app_ops_mixin.dart';
+import 'package:ig_chat_reader/src/presentation/helpers/services/thumbnail_generation_service.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/chat_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 import 'package:ig_chat_reader/src/presentation/router/routes.dart';
@@ -63,7 +65,19 @@ class HomeController with AppOpsMixin {
       if (username == 'instagramuser') {
         continue;
       }
-      chatModel.addFileToUser(username, FileModel.fromArchiveFile(file));
+      final fileModel = FileModel.fromArchiveFile(file);
+      if (fileModel.type == FileType.video) {
+        final thumbnailData = await ThumbnailService.fromBlobUrl(
+          fileModel.blobUrl!,
+        );
+        final dataList = base64Decode(thumbnailData.split(',').last);
+        final blob = Blob(
+          [dataList.toJS].toJS,
+          BlobPropertyBag(type: 'video/mp4'),
+        );
+        fileModel.thumbnailUrl = URL.createObjectURL(blob);
+      }
+      chatModel.addFileToUser(username, fileModel);
     }
     ___processChat(chatModel);
     setGlobalLoading(false);
@@ -117,7 +131,19 @@ class HomeController with AppOpsMixin {
         // skip users with deleted accounts
         continue;
       }
-      chatModel.addFileToUser(username, FileModel.fromArchiveFile(file));
+      final fileModel = FileModel.fromArchiveFile(file);
+      if (fileModel.type == FileType.video) {
+        final thumbnailData = await ThumbnailService.fromBlobUrl(
+          fileModel.blobUrl!,
+        );
+        final dataList = base64Decode(thumbnailData.split(',').last);
+        final blob = Blob(
+          [dataList.toJS].toJS,
+          BlobPropertyBag(type: 'video/mp4'),
+        );
+        fileModel.thumbnailUrl = URL.createObjectURL(blob);
+      }
+      chatModel.addFileToUser(username, fileModel);
     }
     ___processChat(chatModel);
     setGlobalLoading(false);

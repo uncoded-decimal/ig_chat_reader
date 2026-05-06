@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/resources/strings.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
-import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/video_tile.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 import 'package:intl/intl.dart';
 
@@ -301,7 +300,20 @@ class AttachmentTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: Colors.black26),
     ),
-    child: VideoTile(videoUrl: file!.blobUrl!),
+    child: Stack(
+      children: [
+        ResponsiveGraphicView.image(
+          path: file!.thumbnailUrl!,
+          width: double.maxFinite,
+          height: double.maxFinite,
+          fit: BoxFit.cover,
+        ),
+        Align(
+          alignment: Alignment.center,
+          child: Icon(Icons.play_arrow, color: Colors.white),
+        ),
+      ],
+    ),
   );
 
   Widget get __unrecognisedLink => AspectRatio(

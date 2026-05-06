@@ -10,6 +10,11 @@ class FileModel {
   final Uint8List? fileData;
   final String? blobUrl;
 
+  /// this can be used as an extra URL holder for when the message
+  /// holds a Video, or a file type where thumbnails will be generated
+  /// at a later time.
+  String? thumbnailUrl;
+
   FileModel({
     required this.type,
     required this.fileId,

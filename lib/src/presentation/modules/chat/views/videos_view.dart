@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
-import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/video_tile.dart';
+import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 
 class AllVideosView extends BaseResponsiveStatelessWidget {
@@ -30,7 +30,20 @@ class AllVideosView extends BaseResponsiveStatelessWidget {
     itemBuilder:
         (context, index) => InkWell(
           onTap: () => onClick(videos.elementAt(index).blobUrl!),
-          child: VideoTile(videoUrl: videos.elementAt(index).blobUrl!),
+          child: Stack(
+            children: [
+              ResponsiveGraphicView.image(
+                path: videos.elementAt(index).thumbnailUrl!,
+                width: double.maxFinite,
+                height: double.maxFinite,
+                fit: BoxFit.cover,
+              ),
+              Align(
+                alignment: Alignment.center,
+                child: Icon(Icons.play_arrow, color: Colors.white),
+              ),
+            ],
+          ),
         ),
   );
 }
