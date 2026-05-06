@@ -68,18 +68,21 @@ class ChatView extends BaseResponsiveStatelessWidget {
                         final myName = snapshot.data!['my_name'] as String;
                         final allNames =
                             snapshot.data!['all_names'] as Set<String>;
-                        return DropdownButton<String>(
-                          items:
-                              allNames
-                                  .map(
-                                    (name) => DropdownMenuItem<String>(
-                                      value: name,
-                                      child: Text(name),
-                                    ),
-                                  )
-                                  .toList(),
-                          value: myName,
-                          onChanged: _controller.onNameChange,
+                        return Flexible(
+                          child: DropdownButton<String>(
+                            isExpanded: true,
+                            items:
+                                allNames
+                                    .map(
+                                      (name) => DropdownMenuItem<String>(
+                                        value: name,
+                                        child: Text(name),
+                                      ),
+                                    )
+                                    .toList(),
+                            value: myName,
+                            onChanged: _controller.onNameChange,
+                          ),
                         );
                       },
                     ),
