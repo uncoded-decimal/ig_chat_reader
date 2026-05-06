@@ -42,6 +42,13 @@ class ChatController with AppOpsMixin {
           .reversed
           .toList();
 
+  List<FileModel> get allVideos =>
+      files
+          .where((file) => file.type == FileType.video)
+          .toList()
+          .reversed
+          .toList();
+
   void init(BuildContext context) {
     _navigator = Navigator.of(context);
     _setupAudioPlayer();
@@ -239,6 +246,16 @@ class ChatController with AppOpsMixin {
       arguments: {
         'photos': allPhotos,
         'onClick': (String url) => window.open(url, 'new'),
+      },
+    );
+  }
+
+  void viewAllVideos() {
+    _navigator.pushNamed(
+      AppRoutes.allChatVideos,
+      arguments: {
+        'videos': allVideos,
+        'onClick': (String url) => window.open(url, '_blank'),
       },
     );
   }

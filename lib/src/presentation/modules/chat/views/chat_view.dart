@@ -39,6 +39,13 @@ class ChatView extends BaseResponsiveStatelessWidget {
                 ),
               ),
               PopupMenuItem(
+                child: ListTile(
+                  leading: Icon(Icons.movie),
+                  title: Text('View all Videos'),
+                  onTap: _controller.viewAllVideos,
+                ),
+              ),
+              PopupMenuItem(
                 child: Row(
                   spacing: 8,
                   children: [
