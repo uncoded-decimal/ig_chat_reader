@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class HomeView extends BaseResponsiveStatelessWidget {
   final HomeController _controller;
@@ -20,25 +21,38 @@ class HomeView extends BaseResponsiveStatelessWidget {
       child: Scaffold(
         appBar: _appBar,
         body: _body,
-        bottomNavigationBar: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Colors.blueGrey.shade100,
-          child: Row(
-            children: [
-              TextButton(
-                onPressed: () {},
-                child: Text('Version 1.0.1', style: TextStyle(fontSize: 12)),
-              ),
-              TextButton(
-                onPressed: _controller.requestHelp,
-                child: Text('Need Help?', style: TextStyle(fontSize: 12)),
-              ),
-            ],
-          ),
-        ),
+        bottomNavigationBar: _bottomNavBar,
       ),
     );
   }
+
+  Widget get _bottomNavBar => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+    color: Colors.blueGrey.shade100,
+    child: Row(
+      children: [
+        TextButton(
+          onPressed: () {},
+          child: FutureBuilder<PackageInfo>(
+            future: PackageInfo.fromPlatform(),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data == null) {
+                return const SizedBox.shrink();
+              }
+              return Text(
+                'Version ${snapshot.data!.version}',
+                style: TextStyle(fontSize: 12),
+              );
+            },
+          ),
+        ),
+        TextButton(
+          onPressed: _controller.requestHelp,
+          child: Text('Need Help?', style: TextStyle(fontSize: 12)),
+        ),
+      ],
+    ),
+  );
 
   AppBar get _appBar => AppBar(
     toolbarHeight: 120,
