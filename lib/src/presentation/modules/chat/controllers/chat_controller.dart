@@ -176,7 +176,7 @@ class ChatController with AppOpsMixin {
         }
         final model = MessageModel.fromMessageElement(child);
         usernamesFound.add(model.username);
-        if (model.content.htmlMessage.isNotEmpty) {
+        if (model.content.message.isNotEmpty) {
           // only adds chat messages with some content
           if (model.content.media.isNotEmpty) {
             // traverse and add from files wherever found

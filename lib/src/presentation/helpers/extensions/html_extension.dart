@@ -122,4 +122,22 @@ extension HTMLTagFilteringExtension on Element {
       _traverseAndRemoveEmptyULs(childElement);
     }
   }
+
+  String stripToText() {
+    String text = getInnerText(this);
+    _traverseAndRemoveEmptyDIVs(this);
+    return text;
+  }
+
+  String getInnerText(Element element) {
+    if (element.children.isEmpty && element.localName == 'div') {
+      element.remove();
+      return element.innerHtml;
+    }
+    String text = '';
+    for (Element childElement in element.children) {
+      text += getInnerText(childElement);
+    }
+    return text;
+  }
 }

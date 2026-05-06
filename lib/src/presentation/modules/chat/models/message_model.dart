@@ -36,12 +36,12 @@ class MessageModel {
 }
 
 class Content {
-  final String htmlMessage;
+  final String message;
   final List<String> media;
   final List<String> reactions;
 
   Content({
-    required this.htmlMessage,
+    required this.message,
     required this.media,
     required this.reactions,
   });
@@ -53,9 +53,9 @@ class Content {
     String textContent =
         content.innerHtml.isEmpty
             ? AppStrings.tempContentHTML
-            : content.innerHtml;
+            : content.stripToText();
     return Content(
-      htmlMessage: textContent,
+      message: textContent,
       media: mediaList,
       reactions: reactions,
     );

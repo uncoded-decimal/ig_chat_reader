@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_html/flutter_html.dart';
 import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/resources/strings.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
@@ -13,20 +12,30 @@ class ChatMessageItem extends StatelessWidget {
   final bool sameSenderAsLast;
   final void Function(String link, FileModel? file) onAttachmentClick;
 
+  final bool selectionMode;
+  final bool isSelected;
+  final VoidCallback onSelectionToggle;
+
   const ChatMessageItem({
     super.key,
     required this.isMyMessage,
     required this.chatMessage,
     required this.sameSenderAsLast,
     required this.onAttachmentClick,
+    required this.selectionMode,
+    required this.isSelected,
+    required this.onSelectionToggle,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment:
-          isMyMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-      children: [..._titleElements, _messageBody],
+    return DecoratedBox(
+      decoration: BoxDecoration(color: isSelected ? Colors.black12 : null),
+      child: Column(
+        crossAxisAlignment:
+            isMyMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+        children: [..._titleElements, _messageBody],
+      ),
     );
   }
 
@@ -60,7 +69,12 @@ class ChatMessageItem extends StatelessWidget {
       right: isMyMessage ? 20 : 120,
     ),
     decoration: BoxDecoration(
-      color: isMyMessage ? Colors.blue.shade50 : Colors.pink.shade50,
+      color:
+          isSelected
+              ? Colors.white70
+              : isMyMessage
+              ? Colors.blue.shade50
+              : Colors.pink.shade50,
       borderRadius: BorderRadius.only(
         topLeft: Radius.circular(sameSenderAsLast ? 0 : 8),
         topRight: Radius.circular(sameSenderAsLast ? 0 : 8),
@@ -87,8 +101,10 @@ class ChatMessageItem extends StatelessWidget {
                       DateFormat('hh:mm').format(chatMessage.timestamp!),
                       style: TextStyle(fontSize: 8),
                     ),
+                    __selectionIndicator,
                   ]
                   : [
+                    __selectionIndicator,
                     Text(
                       DateFormat('hh:mm').format(chatMessage.timestamp!),
                       style: TextStyle(fontSize: 8),
@@ -102,11 +118,30 @@ class ChatMessageItem extends StatelessWidget {
     ),
   );
 
+  Widget get __selectionIndicator =>
+      selectionMode
+          ? Checkbox(value: isSelected, onChanged: (_) => onSelectionToggle())
+          : const SizedBox.shrink();
+
   Widget get __messageContent =>
-      chatMessage.content.htmlMessage != AppStrings.tempContentHTML ||
-              (chatMessage.content.htmlMessage == AppStrings.tempContentHTML &&
+      chatMessage.content.message != AppStrings.tempContentHTML ||
+              (chatMessage.content.message == AppStrings.tempContentHTML &&
                   chatMessage.content.media.isEmpty)
-          ? Html(data: chatMessage.content.htmlMessage, shrinkWrap: true)
+          ? Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(
+              chatMessage.content.message,
+              style:
+                  chatMessage.content.message == AppStrings.tempContentHTML
+                      ? TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black54,
+                        fontStyle: FontStyle.italic,
+                      )
+                      : null,
+            ),
+          )
           : const SizedBox.shrink();
 
   Widget get _attachments =>
@@ -149,8 +184,21 @@ class ChatMessageItem extends StatelessWidget {
             children:
                 chatMessage.content.reactions
                     .map(
-                      (e) =>
-                          Chip(label: Text(e, style: TextStyle(fontSize: 12))),
+                      (e) => Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        foregroundDecoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.black45),
+                        ),
+                        child: Text(e, style: TextStyle(fontSize: 10)),
+                      ),
                     )
                     .toList(),
           );

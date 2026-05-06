@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/views/chat_view.dart';
+import 'package:ig_chat_reader/src/presentation/modules/chat/views/export_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/views/photos_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/views/videos_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/views/home_view.dart';
@@ -32,6 +33,13 @@ class AppRouter {
             (_) => AllVideosView(
               videos: (settings.arguments as Map?)!['videos'],
               onClick: (settings.arguments as Map?)!['onClick'],
+            ),
+      );
+    } else if (settings.name == AppRoutes.exportChat) {
+      return MaterialPageRoute(
+        builder:
+            (_) => ExportChatView(
+              controller: (settings.arguments as Map?)!['export_controller'],
             ),
       );
     }
