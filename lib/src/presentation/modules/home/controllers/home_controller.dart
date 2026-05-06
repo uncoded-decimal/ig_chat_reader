@@ -163,10 +163,11 @@ class HomeController with AppOpsMixin {
       _chat.getAllVideos(username).length;
 
   void onUsernameClicked(BuildContext context, String username) async {
+    // don't set it false until chat screen done loading
     setGlobalLoading(true);
+    // delay added to ensure loader is visible
+    await Future.delayed(const Duration(milliseconds: 100));
     final userData = await compute(_chat.getCompleteUserData, username);
-
-    setGlobalLoading(false);
     _navigator.pushNamed(
       AppRoutes.chat,
       arguments: {'username': username, 'files': userData},

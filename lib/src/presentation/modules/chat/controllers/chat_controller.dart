@@ -126,8 +126,8 @@ class ChatController with AppOpsMixin {
       debugPrint('File empty');
       return;
     }
-    final contents = utf8.decode(fileData);
-    final messagesList = await __processHTMLContent(contents);
+    final contents = await compute(utf8.decode, fileData);
+    final messagesList = await compute(__processHTMLContent, contents);
 
     ___setupMyName();
 
