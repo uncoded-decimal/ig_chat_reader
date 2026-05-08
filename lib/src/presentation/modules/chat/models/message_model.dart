@@ -72,7 +72,7 @@ class Content {
     String textContent =
         contentType == ContentType.temporary
             ? AppStrings.tempContentHTML
-            : content.stripToText();
+            : content.text;
     return Content(
       message: textContent,
       media: mediaList,
