@@ -128,18 +128,30 @@ class ChatMessageItem extends StatelessWidget {
                   chatMessage.content.media.isEmpty)
           ? Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text(
-              chatMessage.content.message,
-              style:
-                  chatMessage.content.message == AppStrings.tempContentHTML
-                      ? TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black54,
-                        fontStyle: FontStyle.italic,
-                      )
-                      : null,
-            ),
+            child:
+                chatMessage.content.message == AppStrings.tempContentHTML
+                    ? Row(
+                      spacing: 16,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.timelapse_rounded,
+                          size: 24,
+                          color: Colors.black54,
+                        ),
+                        Text(
+                          'Temporary content',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    )
+                    : Text(chatMessage.content.message),
           )
           : const SizedBox.shrink();
 
