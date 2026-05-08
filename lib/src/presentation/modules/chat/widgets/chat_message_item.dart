@@ -52,6 +52,7 @@ class ChatMessageItem extends StatelessWidget {
                   ),
                 SelectableText(
                   chatMessage.username,
+                  scrollPhysics: const NeverScrollableScrollPhysics(),
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
               ]
@@ -191,7 +192,10 @@ class ChatMessageItem extends StatelessWidget {
                     )
                     : chatMessage.content.message.split('\n').length > 3
                     ? ___getLongMessageWidget(chatMessage.content.message)
-                    : SelectableText(chatMessage.content.message),
+                    : SelectableText(
+                      chatMessage.content.message,
+                      scrollPhysics: const NeverScrollableScrollPhysics(),
+                    ),
           )
           : const SizedBox.shrink();
 
@@ -212,6 +216,7 @@ class ChatMessageItem extends StatelessWidget {
                   duration: const Duration(milliseconds: 390),
                   child: SelectableText(
                     message,
+                    scrollPhysics: const NeverScrollableScrollPhysics(),
                     maxLines: entireMessageVisible ? null : 3,
                     style: TextStyle(overflow: TextOverflow.ellipsis),
                   ),
