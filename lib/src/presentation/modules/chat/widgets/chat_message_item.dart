@@ -9,6 +9,7 @@ class ChatMessageItem extends StatelessWidget {
   final bool isMyMessage;
   final MessageModel chatMessage;
   final bool sameSenderAsLast;
+  final bool sameSenderAsNext;
   final void Function(String link, FileModel? file) onAttachmentClick;
 
   final bool selectionMode;
@@ -20,6 +21,7 @@ class ChatMessageItem extends StatelessWidget {
     required this.isMyMessage,
     required this.chatMessage,
     required this.sameSenderAsLast,
+    required this.sameSenderAsNext,
     required this.onAttachmentClick,
     required this.selectionMode,
     required this.isSelected,
@@ -74,12 +76,7 @@ class ChatMessageItem extends StatelessWidget {
               : isMyMessage
               ? Colors.blue.shade50
               : Colors.pink.shade50,
-      borderRadius: BorderRadius.only(
-        topLeft: Radius.circular(sameSenderAsLast ? 0 : 8),
-        topRight: Radius.circular(sameSenderAsLast ? 0 : 8),
-        bottomRight: Radius.circular(8),
-        bottomLeft: Radius.circular(8),
-      ),
+      borderRadius: __borderRadiusForMessageBody,
     ),
     child: Column(
       spacing: 8,
@@ -111,6 +108,44 @@ class ChatMessageItem extends StatelessWidget {
       ],
     ),
   );
+  BorderRadius get __borderRadiusForMessageBody => BorderRadius.only(
+    topLeft: Radius.circular(
+      isMyMessage
+          ? sameSenderAsLast
+              ? 0
+              : 8
+          : sameSenderAsLast
+          ? 0
+          : 8,
+    ),
+    topRight: Radius.circular(
+      isMyMessage
+          ? sameSenderAsLast
+              ? 0
+              : 8
+          : sameSenderAsLast
+          ? 0
+          : 8,
+    ),
+    bottomLeft: Radius.circular(
+      isMyMessage
+          ? sameSenderAsNext
+              ? 0
+              : 8
+          : sameSenderAsNext
+          ? 0
+          : 8,
+    ),
+    bottomRight: Radius.circular(
+      isMyMessage
+          ? sameSenderAsNext
+              ? 0
+              : 8
+          : sameSenderAsNext
+          ? 0
+          : 8,
+    ),
+  );
 
   Widget __timestampWidget(DateTime timestamp) => Padding(
     padding: const EdgeInsets.only(top: 12.0),
@@ -134,7 +169,7 @@ class ChatMessageItem extends StatelessWidget {
             child:
                 chatMessage.content.message == AppStrings.tempContentHTML
                     ? Row(
-                      spacing: 16,
+                      spacing: 8,
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -173,6 +208,7 @@ class ChatMessageItem extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 AnimatedSize(
+                  alignment: Alignment.topCenter,
                   duration: const Duration(milliseconds: 390),
                   child: Text(
                     message,

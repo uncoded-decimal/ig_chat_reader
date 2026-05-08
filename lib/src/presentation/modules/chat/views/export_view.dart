@@ -37,6 +37,10 @@ class ExportChatView extends BaseResponsiveStatelessWidget {
               final currentItem = messages.elementAt(index);
               final previousItem =
                   index > 0 ? messages.elementAt(index - 1) : null;
+              final nextItem =
+                  index < messages.length - 1
+                      ? messages.elementAt(index + 1)
+                      : null;
               final isMyMessage =
                   _controller.currentUsername == currentItem.username;
               return Align(
@@ -47,6 +51,7 @@ class ExportChatView extends BaseResponsiveStatelessWidget {
                   chatMessage: currentItem,
                   sameSenderAsLast:
                       currentItem.username == previousItem?.username,
+                  sameSenderAsNext: currentItem.username == nextItem?.username,
                   onAttachmentClick: (_, _) {},
                   selectionMode: false,
                   isSelected: false,

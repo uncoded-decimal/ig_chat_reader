@@ -75,6 +75,10 @@ class ChatExportController with AppOpsMixin {
                   final currentItem = messages.elementAt(index);
                   final previousItem =
                       index > 0 ? messages.elementAt(index - 1) : null;
+                  final nextItem =
+                      index < messages.length - 1
+                          ? messages.elementAt(index + 1)
+                          : null;
                   final isMyMessage = currentUsername == currentItem.username;
                   return Align(
                     alignment:
@@ -86,6 +90,8 @@ class ChatExportController with AppOpsMixin {
                       chatMessage: currentItem,
                       sameSenderAsLast:
                           currentItem.username == previousItem?.username,
+                      sameSenderAsNext:
+                          currentItem.username == nextItem?.username,
                       onAttachmentClick: (_, _) {},
                       selectionMode: false,
                       isSelected: false,

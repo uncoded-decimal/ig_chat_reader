@@ -173,14 +173,15 @@ class ChatView extends BaseResponsiveStatelessWidget {
           }
           final currentItem = messages.elementAt(index);
           final previousItem = index > 0 ? messages.elementAt(index - 1) : null;
-          final sameSender =
-              previousItem == null
-                  ? false
-                  : currentItem.username == previousItem.username;
+          final nextItem =
+              index < messages.length - 1
+                  ? messages.elementAt(index + 1)
+                  : null;
           return ChatMessageItem(
             isMyMessage: currentItem.username == myName,
             chatMessage: currentItem,
-            sameSenderAsLast: sameSender,
+            sameSenderAsLast: currentItem.username == previousItem?.username,
+            sameSenderAsNext: currentItem.username == nextItem?.username,
             onAttachmentClick: _controller.onAttachmentClick,
             selectionMode: selectionMode,
             isSelected: _exportController.isSelected(currentItem),
