@@ -165,7 +165,7 @@ class ChatController with AppOpsMixin {
   }
 
   Future<List<MessageModel>> __processHTMLContent(String content) async {
-    final Set<String> usernamesFound = {username};
+    final Set<String> usernamesFound = {};
     List<MessageModel> messages = [];
     final htmlDocument = await compute(parse, content);
     final elementsList = htmlDocument.getElementsByClassName('_a706');
