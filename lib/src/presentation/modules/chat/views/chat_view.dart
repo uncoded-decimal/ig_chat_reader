@@ -155,41 +155,49 @@ class ChatView extends BaseResponsiveStatelessWidget {
       final selectionMode = snapshot.data!['selection_mode'] as bool;
       // final selected =
       //     snapshot.data!['selected_messages'] as List<MessageModel>;
-      return ListView.builder(
-        itemBuilder: (_, index) {
-          if (index == messages.length) {
-            return _controller.hasMoreContent
-                ? Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20.0,
-                    vertical: 36,
-                  ),
-                  child: OutlinedButton(
-                    onPressed: _controller.loadNext,
-                    child: Text('Load More...'),
-                  ),
-                )
-                : const SizedBox(height: 80);
-          }
-          final currentItem = messages.elementAt(index);
-          final previousItem = index > 0 ? messages.elementAt(index - 1) : null;
-          final nextItem =
-              index < messages.length - 1
-                  ? messages.elementAt(index + 1)
-                  : null;
-          return ChatMessageItem(
-            isMyMessage: currentItem.username == myName,
-            chatMessage: currentItem,
-            sameSenderAsLast: currentItem.username == previousItem?.username,
-            sameSenderAsNext: currentItem.username == nextItem?.username,
-            onAttachmentClick: _controller.onAttachmentClick,
-            selectionMode: selectionMode,
-            isSelected: _exportController.isSelected(currentItem),
-            onSelectionToggle:
-                () => _exportController.toggleSelection(currentItem),
-          );
-        },
-        itemCount: messages.length + 1,
+      return Scrollbar(
+        controller: _controller.scrollController,
+        child: ListView.builder(
+          controller: _controller.scrollController,
+          itemBuilder: (_, index) {
+            if (index == messages.length) {
+              return _controller.hasMoreContent
+                  ? Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20.0,
+                      vertical: 36,
+                    ),
+                    child: OutlinedButton(
+                      onPressed: _controller.loadNext,
+                      child: Text('Load More...'),
+                    ),
+                  )
+                  : const SizedBox(height: 80);
+            }
+            final currentItem = messages.elementAt(index);
+            final previousItem =
+                index > 0 ? messages.elementAt(index - 1) : null;
+            final nextItem =
+                index < messages.length - 1
+                    ? messages.elementAt(index + 1)
+                    : null;
+            return ChatMessageItem(
+              isMyMessage: currentItem.username == myName,
+              chatMessage: currentItem,
+              sameSenderAsLast: currentItem.username == previousItem?.username,
+              sameSenderAsNext: currentItem.username == nextItem?.username,
+              onAttachmentClick: _controller.onAttachmentClick,
+              selectionMode: selectionMode,
+              isSelected: _exportController.isSelected(currentItem),
+              onSelectionToggle:
+                  () => _exportController.toggleSelection(currentItem),
+            );
+          },
+          itemCount: messages.length + 1,
+          addRepaintBoundaries: false,
+          addAutomaticKeepAlives: false,
+          cacheExtent: 500,
+        ),
       );
     },
   );

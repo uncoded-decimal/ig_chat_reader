@@ -33,6 +33,8 @@ class ChatController with AppOpsMixin {
   final BehaviorSubject<List<MessageModel>> chatMessagesSubject =
       BehaviorSubject();
 
+  final scrollController = ScrollController();
+
   bool get hasMoreContent => _loadedFileIDs.length < _chatFiles.length;
 
   List<FileModel> get allPhotos =>
