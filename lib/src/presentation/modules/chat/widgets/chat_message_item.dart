@@ -50,7 +50,7 @@ class ChatMessageItem extends StatelessWidget {
                     DateFormat('MMM dd, yyyy').format(chatMessage.timestamp!),
                     style: TextStyle(fontSize: 8, fontWeight: FontWeight.w500),
                   ),
-                Text(
+                SelectableText(
                   chatMessage.username,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
@@ -149,7 +149,7 @@ class ChatMessageItem extends StatelessWidget {
 
   Widget __timestampWidget(DateTime timestamp) => Padding(
     padding: const EdgeInsets.only(top: 12.0),
-    child: Text(
+    child: SelectableText(
       DateFormat('hh:mm a').format(timestamp),
       style: TextStyle(fontSize: 8),
     ),
@@ -191,7 +191,7 @@ class ChatMessageItem extends StatelessWidget {
                     )
                     : chatMessage.content.message.split('\n').length > 3
                     ? ___getLongMessageWidget(chatMessage.content.message)
-                    : Text(chatMessage.content.message),
+                    : SelectableText(chatMessage.content.message),
           )
           : const SizedBox.shrink();
 
@@ -210,10 +210,10 @@ class ChatMessageItem extends StatelessWidget {
                 AnimatedSize(
                   alignment: Alignment.topCenter,
                   duration: const Duration(milliseconds: 390),
-                  child: Text(
+                  child: SelectableText(
                     message,
-                    overflow: TextOverflow.fade,
                     maxLines: entireMessageVisible ? null : 3,
+                    style: TextStyle(overflow: TextOverflow.ellipsis),
                   ),
                 ),
                 Text(
