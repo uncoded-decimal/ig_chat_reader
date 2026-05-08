@@ -127,10 +127,6 @@ class HomeController with AppOpsMixin {
         continue;
       }
       final username = ___usernameFromFileName(file.name);
-      if (username == 'instagramuser') {
-        // skip users with deleted accounts
-        continue;
-      }
       final fileModel = FileModel.fromArchiveFile(file);
       if (fileModel.type == FileType.video) {
         final thumbnailData = await ThumbnailService.fromBlobUrl(
@@ -155,6 +151,9 @@ class HomeController with AppOpsMixin {
         firstPartRemoved.contains('/')
             ? firstPartRemoved.substring(0, firstPartRemoved.indexOf('/'))
             : firstPartRemoved;
+    if (filename.contains('instagramuser')) {
+      return secondPartRemoved;
+    }
     if (secondPartRemoved.contains('_')) {
       final thirdPartRemoved = secondPartRemoved.substring(
         0,
