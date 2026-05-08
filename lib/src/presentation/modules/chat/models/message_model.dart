@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/resources/strings.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
