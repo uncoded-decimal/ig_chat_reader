@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:html/dom.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/resources/strings.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
@@ -98,7 +99,7 @@ enum ContentType {
     if (emptyDivCount >= 4) {
       return ContentType.temporary;
     } else if (emptyDivCount == 3 &&
-        finalContentDiv.children.elementAt(1).innerHtml.isNotEmpty) {
+        finalContentDiv.children.elementAt(1).innerHtml.isEmpty) {
       return ContentType.reaction;
     }
 
