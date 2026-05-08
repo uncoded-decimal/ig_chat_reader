@@ -89,6 +89,7 @@ class ChatMessageItem extends StatelessWidget {
       children: [
         Row(
           spacing: 16,
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment:
               isMyMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
@@ -96,24 +97,26 @@ class ChatMessageItem extends StatelessWidget {
               isMyMessage
                   ? [
                     Flexible(child: __messageContent),
-                    Text(
-                      DateFormat('hh:mm a').format(chatMessage.timestamp!),
-                      style: TextStyle(fontSize: 8),
-                    ),
+                    __timestampWidget(chatMessage.timestamp!),
                     __selectionIndicator,
                   ]
                   : [
                     __selectionIndicator,
-                    Text(
-                      DateFormat('hh:mm a').format(chatMessage.timestamp!),
-                      style: TextStyle(fontSize: 8),
-                    ),
+                    __timestampWidget(chatMessage.timestamp!),
                     Flexible(child: __messageContent),
                   ],
         ),
         _attachments,
         _reactions,
       ],
+    ),
+  );
+
+  Widget __timestampWidget(DateTime timestamp) => Padding(
+    padding: const EdgeInsets.only(top: 12.0),
+    child: Text(
+      DateFormat('hh:mm a').format(timestamp),
+      style: TextStyle(fontSize: 8),
     ),
   );
 
@@ -151,9 +154,45 @@ class ChatMessageItem extends StatelessWidget {
                         ),
                       ],
                     )
+                    : chatMessage.content.message.split('\n').length > 3
+                    ? ___getLongMessageWidget(chatMessage.content.message)
                     : Text(chatMessage.content.message),
           )
           : const SizedBox.shrink();
+
+  Widget ___getLongMessageWidget(String message) {
+    bool entireMessageVisible = false;
+    return StatefulBuilder(
+      builder:
+          (context, setState) => InkWell(
+            onTap:
+                () => setState(
+                  () => entireMessageVisible = !entireMessageVisible,
+                ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AnimatedSize(
+                  duration: const Duration(milliseconds: 390),
+                  child: Text(
+                    message,
+                    overflow: TextOverflow.fade,
+                    maxLines: entireMessageVisible ? null : 3,
+                  ),
+                ),
+                Text(
+                  'Tap to ${entireMessageVisible ? 'collapse' : 'expand'}',
+                  style: TextStyle(
+                    fontSize: 8,
+                    color: Colors.black45,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
 
   Widget get _attachments =>
       chatMessage.content.media.isNotEmpty
