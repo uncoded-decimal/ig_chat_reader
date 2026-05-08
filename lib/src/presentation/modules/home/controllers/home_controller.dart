@@ -15,7 +15,7 @@ import 'package:web/web.dart' hide Navigator;
 class HomeController with AppOpsMixin {
   static const String _folderPath = 'your_instagram_activity/messages/inbox/';
 
-  late final ChatModel _chat;
+  final BehaviorSubject<ChatModel?> _chat = BehaviorSubject.seeded(null);
   late final NavigatorState _navigator;
   late final HTMLInputElement inputElement;
 
@@ -26,6 +26,13 @@ class HomeController with AppOpsMixin {
     _navigator = Navigator.of(context);
     _setupDropAndDrop();
     _setupFilePicker();
+    _chat.listen((data) {
+      if (data != null) {
+        userNames.sink.add(data.usernames);
+      } else {
+        userNames.sink.add([]);
+      }
+    });
   }
 
   void _setupFilePicker() {
@@ -79,7 +86,7 @@ class HomeController with AppOpsMixin {
       }
       chatModel.addFileToUser(username, fileModel);
     }
-    ___processChat(chatModel);
+    _chat.sink.add(chatModel);
     setGlobalLoading(false);
   }
 
@@ -141,7 +148,7 @@ class HomeController with AppOpsMixin {
       }
       chatModel.addFileToUser(username, fileModel);
     }
-    ___processChat(chatModel);
+    _chat.sink.add(chatModel);
     setGlobalLoading(false);
   }
 
@@ -165,34 +172,21 @@ class HomeController with AppOpsMixin {
     }
   }
 
-  void ___processChat(ChatModel chatModel) {
-    if (chatModel.usernames.isEmpty) {
-      window.alert('Please select a valid file');
-      return;
-    }
-    try {
-      _chat = chatModel;
-      userNames.sink.add(chatModel.usernames);
-    } catch (e) {
-      window.alert('Refresh window to upload again');
-    }
-  }
-
   int getAudioCountForUsername(String username) =>
-      _chat.getAllAudio(username).length;
+      _chat.value?.getAllAudio(username).length ?? 0;
 
   int getImagesCountForUsername(String username) =>
-      _chat.getAllImages(username).length;
+      _chat.value?.getAllImages(username).length ?? 0;
 
   int getVideosCountForUsername(String username) =>
-      _chat.getAllVideos(username).length;
+      _chat.value?.getAllVideos(username).length ?? 0;
 
   void onUsernameClicked(BuildContext context, String username) async {
     // don't set it false until chat screen done loading
     setGlobalLoading(true);
     // delay added to ensure loader is visible
     await Future.delayed(const Duration(milliseconds: 100));
-    final userData = await compute(_chat.getCompleteUserData, username);
+    final userData = await compute(_chat.value!.getCompleteUserData, username);
     _navigator.pushNamed(
       AppRoutes.chat,
       arguments: {'username': username, 'files': userData},
