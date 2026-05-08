@@ -97,7 +97,7 @@ class ChatMessageItem extends StatelessWidget {
                   ? [
                     Flexible(child: __messageContent),
                     Text(
-                      DateFormat('hh:mm').format(chatMessage.timestamp!),
+                      DateFormat('hh:mm a').format(chatMessage.timestamp!),
                       style: TextStyle(fontSize: 8),
                     ),
                     __selectionIndicator,
@@ -105,7 +105,7 @@ class ChatMessageItem extends StatelessWidget {
                   : [
                     __selectionIndicator,
                     Text(
-                      DateFormat('hh:mm').format(chatMessage.timestamp!),
+                      DateFormat('hh:mm a').format(chatMessage.timestamp!),
                       style: TextStyle(fontSize: 8),
                     ),
                     Flexible(child: __messageContent),
