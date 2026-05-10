@@ -20,7 +20,6 @@
             "flutterMode": "profile",
             "deviceId": "chrome",
             "toolArgs": [
-                "--wasm",
                 "--web-browser-flag=--disable-web-security",
                 "--web-browser-flag=--user-data-dir=/tmp/chrome_dev_session",
                 "--web-browser-flag=--disable-site-isolation-trials"
