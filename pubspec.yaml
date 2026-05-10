@@ -3,7 +3,7 @@ description: "Instagram Chat Reader to simplify reading HTML exports of user mes
 
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.4.1+4
+version: 1.19.3+5
 
 environment:
   sdk: ^3.7.2
