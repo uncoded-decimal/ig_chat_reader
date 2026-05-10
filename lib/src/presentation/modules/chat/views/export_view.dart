@@ -56,6 +56,7 @@ class ExportChatView extends BaseResponsiveStatelessWidget {
                   selectionMode: false,
                   isSelected: false,
                   onSelectionToggle: () {},
+                  showAttachments: true,
                 ),
               );
             }),

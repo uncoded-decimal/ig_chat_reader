@@ -14,9 +14,10 @@ class AppRouter {
     } else if (settings.name == AppRoutes.chat) {
       return MaterialPageRoute(
         builder:
-            (_) => ChatView(
+            (_) => ChatViewStatefulWrapper(
               username: (settings.arguments as Map?)!['username'],
               files: (settings.arguments as Map?)!['files'],
+              shouldDropArchiveData: (settings.arguments as Map?)!['drop_data'],
             ),
       );
     } else if (settings.name == AppRoutes.allChatPhotos) {

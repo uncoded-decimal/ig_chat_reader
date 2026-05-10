@@ -16,6 +16,8 @@ class ChatMessageItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onSelectionToggle;
 
+  final bool showAttachments;
+
   const ChatMessageItem({
     super.key,
     required this.isMyMessage,
@@ -26,6 +28,7 @@ class ChatMessageItem extends StatelessWidget {
     required this.selectionMode,
     required this.isSelected,
     required this.onSelectionToggle,
+    required this.showAttachments,
   });
 
   @override
@@ -104,7 +107,7 @@ class ChatMessageItem extends StatelessWidget {
                     Flexible(child: __messageContent),
                   ],
         ),
-        _attachments,
+        if (showAttachments) _attachments,
         _reactions,
       ],
     ),
@@ -295,7 +298,7 @@ class ChatMessageItem extends StatelessWidget {
           );
 }
 
-class AttachmentTile extends StatelessWidget {
+class AttachmentTile extends StatefulWidget {
   final String link;
   final FileModel? file;
   final VoidCallback onClick;
@@ -307,19 +310,51 @@ class AttachmentTile extends StatelessWidget {
   });
 
   @override
+  State<AttachmentTile> createState() => _AttachmentTileState();
+}
+
+class _AttachmentTileState extends State<AttachmentTile> {
+  @override
+  void initState() {
+    super.initState();
+    if (mounted && widget.file != null) {
+      // creating and disposing blob urls within the
+      // widget allows for having an alive URL only as long
+      // as it is actually needed.
+      widget.file!.createBlobUrls().then((_) {
+        if (mounted) {
+          setState(() {});
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.file?.revokeFileUrl();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return InkWell(onTap: onClick, child: _attachmentPreview);
+    return InkWell(
+      onTap: widget.onClick,
+      child:
+          widget.file?.blobUrl != null || widget.link.isNotEmpty
+              ? _attachmentPreview
+              : const SizedBox.shrink(),
+    );
   }
 
   Widget get _attachmentPreview =>
-      file != null || link.contains('giphy')
+      widget.file != null || widget.link.contains('giphy')
           ? __recognisedItem
           : __unrecognisedLink;
 
   Widget get __recognisedItem =>
-      link.contains('giphy')
+      widget.link.contains('giphy')
           ? ___gifTile
-          : switch (file!.type) {
+          : switch (widget.file!.type) {
             FileType.audio => ___audioTile,
             FileType.photo => ___imageTile,
             FileType.video => ___videoTile,
@@ -344,7 +379,7 @@ class AttachmentTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       border: Border.all(color: Colors.black26),
     ),
-    child: ResponsiveGraphicView.image(path: link, fit: BoxFit.cover),
+    child: ResponsiveGraphicView.image(path: widget.link, fit: BoxFit.cover),
   );
 
   Widget get ___imageTile => Container(
@@ -360,7 +395,7 @@ class AttachmentTile extends StatelessWidget {
       border: Border.all(color: Colors.black26),
     ),
     child: ResponsiveGraphicView.image(
-      path: file!.blobUrl!,
+      path: widget.file!.blobUrl!,
       fit: BoxFit.contain,
     ),
   );
@@ -394,12 +429,18 @@ class AttachmentTile extends StatelessWidget {
     ),
     child: Stack(
       children: [
-        ResponsiveGraphicView.image(
-          path: file!.thumbnailUrl!,
-          width: double.maxFinite,
-          height: double.maxFinite,
-          fit: BoxFit.cover,
-        ),
+        if (widget.file!.thumbnailUrl == null)
+          ResponsiveGraphicView.dummy(
+            width: double.maxFinite,
+            height: double.maxFinite,
+          ),
+        if (widget.file!.thumbnailUrl != null)
+          ResponsiveGraphicView.image(
+            path: widget.file!.thumbnailUrl!,
+            width: double.maxFinite,
+            height: double.maxFinite,
+            fit: BoxFit.cover,
+          ),
         Align(
           alignment: Alignment.center,
           child: Icon(Icons.play_arrow, color: Colors.white),
@@ -423,7 +464,7 @@ class AttachmentTile extends StatelessWidget {
       ),
       padding: const EdgeInsets.all(16),
       child: Text(
-        ___getAttachmentTypeFromLink(link),
+        ___getAttachmentTypeFromLink(widget.link),
         style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
         textAlign: TextAlign.center,
       ),

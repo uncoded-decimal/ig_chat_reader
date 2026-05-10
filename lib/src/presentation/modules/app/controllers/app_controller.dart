@@ -19,4 +19,9 @@ class AppController {
       window.sessionStorage.setItem(_usernameStorageKey, username);
   String getCurrentUsername() =>
       window.sessionStorage.getItem(_usernameStorageKey) ?? '';
+
+  void setCurrentChatProgress(String identifier, double progress) =>
+      window.localStorage.setItem(identifier, progress.toString());
+  double getChatProgress(String identifier) =>
+      double.parse(window.localStorage.getItem(identifier) ?? '0');
 }

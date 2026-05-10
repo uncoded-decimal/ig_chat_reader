@@ -42,6 +42,13 @@ class ChatModel {
     return files.where((file) => file.type == FileType.video).toList();
   }
 
-  List<FileModel> getCompleteUserData(String username) =>
-      _userFilesMap[username] ?? [];
+  Future<List<FileModel>> getCompleteUserData(String username) async {
+    return _userFilesMap[username] ?? [];
+  }
+
+  /// [exclude] points to the username whose data needs
+  /// to be preserved.
+  Future<void> removeAllData() async {
+    _userFilesMap.clear();
+  }
 }

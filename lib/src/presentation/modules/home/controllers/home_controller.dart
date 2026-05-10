@@ -1,21 +1,19 @@
-import 'dart:convert';
 import 'dart:js_interop';
 import 'dart:typed_data';
 import 'package:archive/archive.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/modules/app/mixins/app_ops_mixin.dart';
-import 'package:ig_chat_reader/src/presentation/helpers/services/thumbnail_generation_service.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/chat_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 import 'package:ig_chat_reader/src/presentation/router/routes.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:web/web.dart' hide Navigator;
+import 'package:web/web.dart' hide Navigator, Text;
+import 'package:worker_manager/worker_manager.dart';
 
 class HomeController with AppOpsMixin {
   static const String _folderPath = 'your_instagram_activity/messages/inbox/';
 
-  final BehaviorSubject<ChatModel?> _chat = BehaviorSubject.seeded(null);
+  BehaviorSubject<ChatModel?> _chat = BehaviorSubject.seeded(null);
   late final NavigatorState _navigator;
   late final HTMLInputElement inputElement;
 
@@ -26,13 +24,15 @@ class HomeController with AppOpsMixin {
     _navigator = Navigator.of(context);
     _setupDropAndDrop();
     _setupFilePicker();
-    _chat.listen((data) {
-      if (data != null) {
-        userNames.sink.add(data.usernames);
-      } else {
-        userNames.sink.add([]);
-      }
-    });
+    _chat.listen(__chatDataListener);
+  }
+
+  void __chatDataListener(ChatModel? data) {
+    if (data != null) {
+      userNames.sink.add(data.usernames);
+    } else {
+      userNames.sink.add([]);
+    }
   }
 
   void _setupFilePicker() {
@@ -59,6 +59,7 @@ class HomeController with AppOpsMixin {
       debugPrint('Unsupported file type');
       return;
     }
+    await _clearPreviousChatData();
     ChatModel chatModel = ChatModel();
     setGlobalLoading(true);
     final ByteBuffer bufferedData = (await file.arrayBuffer().toDart).toDart;
@@ -73,17 +74,6 @@ class HomeController with AppOpsMixin {
         continue;
       }
       final fileModel = FileModel.fromArchiveFile(file);
-      if (fileModel.type == FileType.video) {
-        final thumbnailData = await ThumbnailService.fromBlobUrl(
-          fileModel.blobUrl!,
-        );
-        final dataList = base64Decode(thumbnailData.split(',').last);
-        final blob = Blob(
-          [dataList.toJS].toJS,
-          BlobPropertyBag(type: 'video/mp4'),
-        );
-        fileModel.thumbnailUrl = URL.createObjectURL(blob);
-      }
       chatModel.addFileToUser(username, fileModel);
     }
     _chat.sink.add(chatModel);
@@ -123,6 +113,7 @@ class HomeController with AppOpsMixin {
       debugPrint('Unsupported file type');
       return;
     }
+    await _clearPreviousChatData();
     ChatModel chatModel = ChatModel();
     setGlobalLoading(true);
     final ByteBuffer bufferedData =
@@ -135,17 +126,6 @@ class HomeController with AppOpsMixin {
       }
       final username = ___usernameFromFileName(file.name);
       final fileModel = FileModel.fromArchiveFile(file);
-      if (fileModel.type == FileType.video) {
-        final thumbnailData = await ThumbnailService.fromBlobUrl(
-          fileModel.blobUrl!,
-        );
-        final dataList = base64Decode(thumbnailData.split(',').last);
-        final blob = Blob(
-          [dataList.toJS].toJS,
-          BlobPropertyBag(type: 'video/mp4'),
-        );
-        fileModel.thumbnailUrl = URL.createObjectURL(blob);
-      }
       chatModel.addFileToUser(username, fileModel);
     }
     _chat.sink.add(chatModel);
@@ -186,12 +166,51 @@ class HomeController with AppOpsMixin {
     setGlobalLoading(true);
     // delay added to ensure loader is visible
     await Future.delayed(const Duration(milliseconds: 100));
-    final userData = await compute(_chat.value!.getCompleteUserData, username);
+    final userData = await workerManager.execute(
+      () => _chat.value!.getCompleteUserData(username),
+    );
+    final dataSizeInBytes = userData.fold<int>(
+      0,
+      (value, file) => value + (file.fileData?.lengthInBytes ?? 0),
+    );
+    final maxAllowedSize = 10000000;
+    final shouldDropArchiveData = dataSizeInBytes > maxAllowedSize;
+
+    // clone all the required data
+    List<FileModel> dataToShare = userData.map((e) => e.clone()).toList();
+
+    // evaluate need to keep archive active
+    if (shouldDropArchiveData) {
+      // drop the variable
+      userData.clear();
+      await Future.delayed(Duration.zero);
+      await _clearPreviousChatData();
+      showMessage('Archive data has been dropped to save memory');
+    }
+
+    // creates URLs only for the cloned data
+    // for (FileModel file in dataToShare) {
+    //   await workerManager.execute(() async => await file.createBlobUrls());
+    // }
     _navigator.pushNamed(
       AppRoutes.chat,
-      arguments: {'username': username, 'files': userData},
+      arguments: {
+        'username': username,
+        'files': dataToShare,
+        'drop_data': shouldDropArchiveData,
+      },
     );
   }
 
   void requestHelp() => showGitHub();
+
+  void showMessage(String message) => ScaffoldMessenger.of(
+    _navigator.context,
+  ).showSnackBar(SnackBar(content: Text(message), showCloseIcon: true));
+
+  Future<void> _clearPreviousChatData() async {
+    _chat.sink.add(null);
+    await _chat.close();
+    _chat = BehaviorSubject.seeded(null)..listen(__chatDataListener);
+  }
 }

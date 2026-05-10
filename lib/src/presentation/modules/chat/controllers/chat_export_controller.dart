@@ -96,6 +96,7 @@ class ChatExportController with AppOpsMixin {
                       selectionMode: false,
                       isSelected: false,
                       onSelectionToggle: () {},
+                      showAttachments: true,
                     ),
                   );
                 }),
@@ -115,7 +116,9 @@ class ChatExportController with AppOpsMixin {
       ..download = 'chat_screenshot.png'
       ..click();
     Future.delayed(
-      const Duration(seconds: 1),
+      const Duration(seconds: 5),
     ).then((_) => URL.revokeObjectURL(url));
   }
+
+  void dispose() {}
 }

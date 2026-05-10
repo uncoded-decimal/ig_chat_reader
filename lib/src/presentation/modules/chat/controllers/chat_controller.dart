@@ -1,24 +1,30 @@
 import 'dart:convert';
 import 'dart:js_interop';
-
-import 'package:flutter/foundation.dart';
+import 'dart:math';
 import 'package:flutter/material.dart' hide Element;
 import 'package:html/dom.dart' show Element;
 import 'package:html/parser.dart';
+import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/extensions/rxdart_extension.dart';
 import 'package:ig_chat_reader/src/presentation/modules/app/mixins/app_ops_mixin.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 import 'package:ig_chat_reader/src/presentation/router/routes.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:web/web.dart' hide Element, Navigator;
+import 'package:web/web.dart' hide Element, Navigator, Text;
+import 'package:worker_manager/worker_manager.dart';
 
 class ChatController with AppOpsMixin {
   final String username;
   final List<FileModel> files;
+  final bool dropData;
   late final NavigatorState _navigator;
 
-  ChatController({required this.username, required this.files});
+  ChatController({
+    required this.username,
+    required this.files,
+    required this.dropData,
+  });
 
   late HTMLMediaElement audioMediaElement;
   late AudioContext audioContext;
@@ -28,14 +34,29 @@ class ChatController with AppOpsMixin {
   final List<String> _loadedFileIDs = [];
 
   final BehaviorSubject<Set<String>> namesFound = BehaviorSubject();
-  final BehaviorSubject<String> myName = BehaviorSubject();
-
+  final BehaviorSubject<String> myName = BehaviorSubject.seeded('');
   final BehaviorSubject<List<MessageModel>> chatMessagesSubject =
-      BehaviorSubject();
+      BehaviorSubject.seeded([]);
+
+  final BehaviorSubject<bool> showAttachments = BehaviorSubject.seeded(true);
 
   final scrollController = ScrollController();
 
+  String? _chatKey;
+
   bool get hasMoreContent => _loadedFileIDs.length < _chatFiles.length;
+
+  double getSafeCacheLength(LayoutMode currentLayoutMode) {
+    if (_chatFiles.length == 1) {
+      return 3000;
+    } else {
+      return switch (currentLayoutMode) {
+        LayoutMode.desktop when _loadedFileIDs.length == 1 => 2000,
+        LayoutMode.desktop when _loadedFileIDs.length > 1 => 1000,
+        (_) => 800,
+      };
+    }
+  }
 
   List<FileModel> get allPhotos =>
       files
@@ -51,10 +72,106 @@ class ChatController with AppOpsMixin {
           .reversed
           .toList();
 
-  void init(BuildContext context) {
+  void dispose() {
+    debugPrint('Dropping all ${files.length} URLs for $username');
+    for (FileModel file in files) {
+      file.revokeFileUrl();
+    }
+    debugPrint('Closing all streams');
+    namesFound.close();
+    myName.close();
+    chatMessagesSubject.sink.add([]);
+    chatMessagesSubject.close();
+    showAttachments.close();
+    debugPrint('Removing all HTML chat elements');
+    audioMediaElement.remove();
+    playButtonElement.remove();
+    debugPrint('Removing scroll controller');
+    scrollController
+      ..removeListener(__updateChatProgress)
+      ..dispose();
+    debugPrint('Removing image cache');
+    PaintingBinding.instance.imageCache.clear();
+  }
+
+  void init(BuildContext context) async {
+    //set to load maximum of 3 images at a time
+    PaintingBinding.instance.imageCache.maximumSize = 3;
+    //set to load maximum of 50 MB in image cache
+    PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024;
     _navigator = Navigator.of(context);
     _setupAudioPlayer();
-    _processChat();
+    await _processChat();
+    myName.waitUntilValue().then((name) async {
+      final sortedNames =
+          (await namesFound.waitUntilValue()).toList()
+            ..sort((a, b) => a.compareTo(b));
+      _chatKey =
+          sortedNames
+              .join(':')
+              .replaceAll(RegExp(r'[^a-zA-Z0-9:]'), '_')
+              .toLowerCase();
+      _setupChatProgress();
+    });
+  }
+
+  void _setupChatProgress() {
+    // scroll to messages last found for user
+    final progressFound = getChatProgress(chatKey: _chatKey!);
+    if (progressFound > 100) {
+      __onProgressFound(progressFound);
+    }
+
+    // setup listener to update chat progress
+    scrollController.addListener(__updateChatProgress);
+  }
+
+  void __updateChatProgress() {
+    setChatProgress(chatKey: _chatKey!, scrollIndex: scrollController.offset);
+  }
+
+  void __onProgressFound(double progressFound) {
+    ScaffoldMessenger.of(_navigator.context).showSnackBar(
+      SnackBar(
+        content: Text('Found progress made for this user'),
+        showCloseIcon: true,
+        duration: const Duration(seconds: 5),
+        action: SnackBarAction(
+          label: 'Show',
+          onPressed:
+              () => ___loadChatFilesAndScrollUntilRequired(progressFound),
+        ),
+      ),
+    );
+  }
+
+  Future<void> ___loadChatFilesAndScrollUntilRequired(
+    double progressFound,
+  ) async {
+    final stepScrollLength = scrollController.position.viewportDimension;
+    final currentMaximum = scrollController.position.maxScrollExtent;
+    debugPrint('Scroll length on page: $currentMaximum');
+    int pagesCount = progressFound ~/ currentMaximum;
+    while (pagesCount != 0) {
+      await loadNext();
+      pagesCount--;
+    }
+
+    double scrolledLength = 0;
+    do {
+      setGlobalLoading(true);
+      showAttachments.sink.add(false);
+      await Future.delayed(const Duration(milliseconds: 100));
+      await scrollController.animateTo(
+        scrolledLength,
+        curve: Curves.linear,
+        duration: Duration(milliseconds: 200),
+      );
+      scrolledLength += stepScrollLength;
+    } while (scrolledLength <= progressFound);
+    showAttachments.sink.add(true);
+    setGlobalLoading(false);
+    showMessage('Scroll completed');
   }
 
   void _setupAudioPlayer() {
@@ -102,26 +219,30 @@ class ChatController with AppOpsMixin {
     );
   }
 
-  void _processChat() async {
+  Future<void> _processChat() async {
     // reversing because messages_2 is later than messages_1
     final chatFiles =
         files.where((file) => file.type == FileType.html).toList().reversed;
     _chatFiles.addAll(chatFiles);
     // in case chat exists through multiple files, load them one by one
-    __loadFile(_chatFiles.first.fileId);
+    if (_chatFiles.isNotEmpty) {
+      await __loadFile(_chatFiles.first.fileId);
+    } else {
+      debugPrint('Unable to find chat files');
+    }
   }
 
-  void loadNext() {
+  Future<void> loadNext() async {
     for (FileModel file in _chatFiles) {
       if (_loadedFileIDs.contains(file.fileId)) {
         continue;
       }
-      __loadFile(file.fileId);
+      await __loadFile(file.fileId);
       break;
     }
   }
 
-  void __loadFile(String fileID) async {
+  Future<void> __loadFile(String fileID) async {
     if (_loadedFileIDs.contains(fileID)) {
       debugPrint('Already loaded $fileID');
       return;
@@ -135,8 +256,10 @@ class ChatController with AppOpsMixin {
       debugPrint('File empty');
       return;
     }
-    final contents = await compute(utf8.decode, fileData);
-    final messagesList = await compute(__processHTMLContent, contents);
+    final contents = await workerManager.execute(() => utf8.decode(fileData));
+    final messagesList = await workerManager.execute(
+      () => __processHTMLContent(contents),
+    );
 
     ___setupMyName();
 
@@ -167,7 +290,7 @@ class ChatController with AppOpsMixin {
   Future<List<MessageModel>> __processHTMLContent(String content) async {
     final Set<String> usernamesFound = {};
     List<MessageModel> messages = [];
-    final htmlDocument = await compute(parse, content);
+    final htmlDocument = parse(content);
     final elementsList = htmlDocument.getElementsByClassName('_a706');
     for (Element element in elementsList) {
       // reversing here so all is in order
@@ -269,4 +392,8 @@ class ChatController with AppOpsMixin {
     myName.sink.add(value);
     setUsername(value);
   }
+
+  void showMessage(String message) => ScaffoldMessenger.of(
+    _navigator.context,
+  ).showSnackBar(SnackBar(content: Text(message), showCloseIcon: true));
 }

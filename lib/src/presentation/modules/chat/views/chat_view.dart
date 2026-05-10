@@ -7,22 +7,61 @@ import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/chat_messag
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 import 'package:rxdart/rxdart.dart';
 
+class ChatViewStatefulWrapper extends StatefulWidget {
+  final ChatController _controller;
+  final ChatExportController _exportController;
+  ChatViewStatefulWrapper({
+    super.key,
+    required String username,
+    required List<FileModel> files,
+    required bool shouldDropArchiveData,
+  }) : _controller = ChatController(
+         username: username,
+         files: files,
+         dropData: shouldDropArchiveData,
+       ),
+       _exportController = ChatExportController();
+
+  @override
+  State<ChatViewStatefulWrapper> createState() =>
+      _ChatViewStatefulWrapperState();
+}
+
+class _ChatViewStatefulWrapperState extends State<ChatViewStatefulWrapper> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget._controller.init(context);
+      widget._exportController.init(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ChatView(
+      controller: widget._controller,
+      exportController: widget._exportController,
+    );
+  }
+
+  @override
+  void dispose() {
+    widget._controller.dispose();
+    widget._exportController.dispose();
+    super.dispose();
+  }
+}
+
 class ChatView extends BaseResponsiveStatelessWidget {
   final ChatController _controller;
   final ChatExportController _exportController;
   ChatView({
     super.key,
-    required String username,
-    required List<FileModel> files,
-  }) : _controller = ChatController(username: username, files: files),
-       _exportController = ChatExportController();
-
-  @override
-  void initState(BuildContext context) {
-    super.initState(context);
-    _controller.init(context);
-    _exportController.init(context);
-  }
+    required ChatController controller,
+    required ChatExportController exportController,
+  }) : _controller = controller,
+       _exportController = exportController;
 
   @override
   Widget defaultWidget(BuildContext context) {
@@ -138,12 +177,14 @@ class ChatView extends BaseResponsiveStatelessWidget {
         _controller.chatMessagesSubject.stream,
         _exportController.selectionMode.stream,
         _exportController.selectedMessages.stream,
+        _controller.showAttachments.stream,
       ],
       (list) => {
         'my_name': list.elementAt(0),
         'messages': list.elementAt(1),
         'selection_mode': list.elementAt(2),
         'selected_messages': list.elementAt(3),
+        'show_attachments': list.elementAt(4),
       },
     ),
     builder: (context, snapshot) {
@@ -153,6 +194,7 @@ class ChatView extends BaseResponsiveStatelessWidget {
       final myName = snapshot.data!['my_name'] as String;
       final messages = snapshot.data!['messages'] as List<MessageModel>;
       final selectionMode = snapshot.data!['selection_mode'] as bool;
+      final showAttachments = snapshot.data!['show_attachments'] as bool;
       // final selected =
       //     snapshot.data!['selected_messages'] as List<MessageModel>;
       return Scrollbar(
@@ -191,12 +233,13 @@ class ChatView extends BaseResponsiveStatelessWidget {
               isSelected: _exportController.isSelected(currentItem),
               onSelectionToggle:
                   () => _exportController.toggleSelection(currentItem),
+              showAttachments: showAttachments,
             );
           },
           itemCount: messages.length + 1,
           addRepaintBoundaries: false,
           addAutomaticKeepAlives: false,
-          cacheExtent: 500,
+          cacheExtent: _controller.getSafeCacheLength(currentLayoutMode!),
         ),
       );
     },

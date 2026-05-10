@@ -19,4 +19,12 @@ mixin AppOpsMixin {
     debugPrint('Found current username: $name');
     return name;
   }
+
+  void setChatProgress({
+    required String chatKey,
+    required double scrollIndex,
+  }) => _controller.setCurrentChatProgress(chatKey, scrollIndex);
+
+  double getChatProgress({required String chatKey}) =>
+      _controller.getChatProgress(chatKey);
 }
