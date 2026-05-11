@@ -5,7 +5,6 @@ import 'package:archive/archive_io.dart';
 import 'package:flutter/foundation.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/services/thumbnail_generation_service.dart';
 import 'package:web/web.dart';
-import 'package:worker_manager/worker_manager.dart';
 
 class FileModel {
   final FileType type;
@@ -78,9 +77,7 @@ class FileModel {
       final jsData = [fileData!.toJS].toJS;
       final blob = Blob(jsData, BlobPropertyBag(type: 'video/mp4'));
       blobUrl = URL.createObjectURL(blob);
-      final thumbnailData = await workerManager.execute(
-        () async => await ThumbnailService.fromBlobUrl(blobUrl!),
-      );
+      final thumbnailData = await ThumbnailService.fromBlobUrl(blobUrl!);
       final dataList = base64Decode(thumbnailData.split(',').last);
       final thumbnailBlob = Blob(
         [dataList.toJS].toJS,
@@ -98,10 +95,12 @@ class FileModel {
     if (blobUrl != null) {
       debugPrint('Dropping URL for $type $fileId');
       URL.revokeObjectURL(blobUrl!);
+      blobUrl = null;
     }
     if (thumbnailUrl != null) {
       debugPrint('Dropping thumbnailUrl for $type $fileId');
       URL.revokeObjectURL(thumbnailUrl!);
+      thumbnailUrl = null;
     }
   }
 

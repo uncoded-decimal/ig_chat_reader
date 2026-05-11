@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
+import 'package:ig_chat_reader/src/presentation/modules/home/models/chat_model.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class HomeView extends BaseResponsiveStatelessWidget {
@@ -83,12 +84,31 @@ class HomeView extends BaseResponsiveStatelessWidget {
         ),
       ],
     ),
+    actions: [
+      StreamBuilder<ChatModel?>(
+        stream: _controller.chatSubject.stream,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const SizedBox.shrink();
+          }
+          return PopupMenuButton(
+            itemBuilder:
+                (_) => [
+                  PopupMenuItem(
+                    onTap: _controller.clearChatData,
+                    child: Text('Clear'),
+                  ),
+                ],
+          );
+        },
+      ),
+    ],
   );
 
   Widget get _body => StreamBuilder(
-    stream: _controller.userNames.stream,
+    stream: _controller.chatSubject.stream,
     builder: (context, snapshot) {
-      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+      if (!snapshot.hasData) {
         return _emptyView;
       }
       return SingleChildScrollView(
@@ -108,7 +128,7 @@ class HomeView extends BaseResponsiveStatelessWidget {
           ),
           children: [
             _tableTitle,
-            ...snapshot.data!.map(
+            ...snapshot.data!.usernames.map(
               (username) => _getUserNameRow(context, username),
             ),
           ],

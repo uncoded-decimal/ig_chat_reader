@@ -12,19 +12,14 @@ import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.d
 import 'package:ig_chat_reader/src/presentation/router/routes.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:web/web.dart' hide Element, Navigator, Text;
-import 'package:worker_manager/worker_manager.dart';
 
 class ChatController with AppOpsMixin {
   final String username;
   final List<FileModel> files;
-  final bool dropData;
-  late final NavigatorState _navigator;
 
-  ChatController({
-    required this.username,
-    required this.files,
-    required this.dropData,
-  });
+  ChatController({required this.username, required this.files});
+
+  late final NavigatorState _navigator;
 
   late HTMLMediaElement audioMediaElement;
   late AudioContext audioContext;
@@ -256,10 +251,8 @@ class ChatController with AppOpsMixin {
       debugPrint('File empty');
       return;
     }
-    final contents = await workerManager.execute(() => utf8.decode(fileData));
-    final messagesList = await workerManager.execute(
-      () => __processHTMLContent(contents),
-    );
+    final contents = utf8.decode(fileData);
+    final messagesList = await __processHTMLContent(contents);
 
     ___setupMyName();
 

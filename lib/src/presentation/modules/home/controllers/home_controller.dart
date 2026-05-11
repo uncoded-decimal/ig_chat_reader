@@ -8,31 +8,20 @@ import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.d
 import 'package:ig_chat_reader/src/presentation/router/routes.dart';
 import 'package:rxdart/subjects.dart';
 import 'package:web/web.dart' hide Navigator, Text;
-import 'package:worker_manager/worker_manager.dart';
 
 class HomeController with AppOpsMixin {
   static const String _folderPath = 'your_instagram_activity/messages/inbox/';
 
-  BehaviorSubject<ChatModel?> _chat = BehaviorSubject.seeded(null);
   late final NavigatorState _navigator;
   late final HTMLInputElement inputElement;
 
   final BehaviorSubject<String> dndEventSubject = BehaviorSubject.seeded('');
-  final BehaviorSubject<List<String>> userNames = BehaviorSubject();
+  final BehaviorSubject<ChatModel?> chatSubject = BehaviorSubject.seeded(null);
 
   void init(BuildContext context) {
     _navigator = Navigator.of(context);
     _setupDropAndDrop();
     _setupFilePicker();
-    _chat.listen(__chatDataListener);
-  }
-
-  void __chatDataListener(ChatModel? data) {
-    if (data != null) {
-      userNames.sink.add(data.usernames);
-    } else {
-      userNames.sink.add([]);
-    }
   }
 
   void _setupFilePicker() {
@@ -59,24 +48,11 @@ class HomeController with AppOpsMixin {
       debugPrint('Unsupported file type');
       return;
     }
-    await _clearPreviousChatData();
-    ChatModel chatModel = ChatModel();
     setGlobalLoading(true);
     final ByteBuffer bufferedData = (await file.arrayBuffer().toDart).toDart;
     final fileBytes = bufferedData.asUint8List();
     final archive = ZipDecoder().decodeBytes(fileBytes);
-    for (ArchiveFile file in archive.files) {
-      if (!file.name.contains(_folderPath)) {
-        continue;
-      }
-      final username = ___usernameFromFileName(file.name);
-      if (username == 'instagramuser') {
-        continue;
-      }
-      final fileModel = FileModel.fromArchiveFile(file);
-      chatModel.addFileToUser(username, fileModel);
-    }
-    _chat.sink.add(chatModel);
+    await ___processArchive(archive);
     setGlobalLoading(false);
   }
 
@@ -113,23 +89,28 @@ class HomeController with AppOpsMixin {
       debugPrint('Unsupported file type');
       return;
     }
-    await _clearPreviousChatData();
-    ChatModel chatModel = ChatModel();
     setGlobalLoading(true);
     final ByteBuffer bufferedData =
         (await file.getAsFile()!.arrayBuffer().toDart).toDart;
     final fileBytes = bufferedData.asUint8List();
     final archive = ZipDecoder().decodeBytes(fileBytes);
+    await ___processArchive(archive);
+    setGlobalLoading(false);
+  }
+
+  Future<void> ___processArchive(Archive archive) async {
+    final chatModel = ChatModel();
+    chatSubject.sink.add(null);
     for (ArchiveFile file in archive.files) {
       if (!file.name.contains(_folderPath)) {
         continue;
       }
       final username = ___usernameFromFileName(file.name);
       final fileModel = FileModel.fromArchiveFile(file);
+      await addFileToUser(username, fileModel);
       chatModel.addFileToUser(username, fileModel);
     }
-    _chat.sink.add(chatModel);
-    setGlobalLoading(false);
+    chatSubject.sink.add(chatModel);
   }
 
   String ___usernameFromFileName(String filename) {
@@ -153,64 +134,59 @@ class HomeController with AppOpsMixin {
   }
 
   int getAudioCountForUsername(String username) =>
-      _chat.value?.getAllAudio(username).length ?? 0;
+      chatSubject.valueOrNull?.getAllAudio(username).length ?? 0;
 
   int getImagesCountForUsername(String username) =>
-      _chat.value?.getAllImages(username).length ?? 0;
+      chatSubject.valueOrNull?.getAllImages(username).length ?? 0;
 
   int getVideosCountForUsername(String username) =>
-      _chat.value?.getAllVideos(username).length ?? 0;
+      chatSubject.valueOrNull?.getAllVideos(username).length ?? 0;
 
   void onUsernameClicked(BuildContext context, String username) async {
     // don't set it false until chat screen done loading
     setGlobalLoading(true);
     // delay added to ensure loader is visible
     await Future.delayed(const Duration(milliseconds: 100));
-    final userData = await workerManager.execute(
-      () => _chat.value!.getCompleteUserData(username),
-    );
-    final dataSizeInBytes = userData.fold<int>(
-      0,
-      (value, file) => value + (file.fileData?.lengthInBytes ?? 0),
-    );
-    final maxAllowedSize = 10000000;
-    final shouldDropArchiveData = dataSizeInBytes > maxAllowedSize;
-
-    // clone all the required data
-    List<FileModel> dataToShare = userData.map((e) => e.clone()).toList();
-
-    // evaluate need to keep archive active
-    if (shouldDropArchiveData) {
-      // drop the variable
-      userData.clear();
-      await Future.delayed(Duration.zero);
-      await _clearPreviousChatData();
-      showMessage('Archive data has been dropped to save memory');
+    final userData = chatSubject.valueOrNull?.getUserData(username);
+    if (userData == null) {
+      debugPrint('Chat data not found for $username');
+      return;
     }
 
-    // creates URLs only for the cloned data
-    // for (FileModel file in dataToShare) {
-    //   await workerManager.execute(() async => await file.createBlobUrls());
-    // }
+    List<FileModel> files = [];
+    for (String htmlFileName in userData.htmls) {
+      final file = await getHTMLFileForUser(username, htmlFileName);
+      files.add(file);
+    }
+    for (String imageFileName in userData.photos) {
+      final file = await getImageFileForUser(username, imageFileName);
+      files.add(file);
+    }
+    for (String audioFileName in userData.audios) {
+      final file = await getAudioFileForUser(username, audioFileName);
+      files.add(file);
+    }
+    for (String videoFileName in userData.videos) {
+      final file = await getVideoFileForUser(username, videoFileName);
+      files.add(file);
+    }
+
     _navigator.pushNamed(
       AppRoutes.chat,
-      arguments: {
-        'username': username,
-        'files': dataToShare,
-        'drop_data': shouldDropArchiveData,
-      },
+      arguments: {'username': username, 'files': files},
     );
   }
 
   void requestHelp() => showGitHub();
 
+  void clearChatData() async {
+    setGlobalLoading(true);
+    await clearUsersData(chatSubject.value!.usernames);
+    chatSubject.sink.add(null);
+    setGlobalLoading(false);
+  }
+
   void showMessage(String message) => ScaffoldMessenger.of(
     _navigator.context,
   ).showSnackBar(SnackBar(content: Text(message), showCloseIcon: true));
-
-  Future<void> _clearPreviousChatData() async {
-    _chat.sink.add(null);
-    await _chat.close();
-    _chat = BehaviorSubject.seeded(null)..listen(__chatDataListener);
-  }
 }

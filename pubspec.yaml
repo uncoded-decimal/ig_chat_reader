@@ -22,7 +22,6 @@ dependencies:
   flutter_svg: ^2.2.2
   package_info_plus: ^9.0.1
   screenshot: ^3.0.0
-  worker_manager: ^7.2.9
 
 dev_dependencies:
   flutter_test:

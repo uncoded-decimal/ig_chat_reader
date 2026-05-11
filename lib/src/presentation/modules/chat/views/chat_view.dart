@@ -14,12 +14,7 @@ class ChatViewStatefulWrapper extends StatefulWidget {
     super.key,
     required String username,
     required List<FileModel> files,
-    required bool shouldDropArchiveData,
-  }) : _controller = ChatController(
-         username: username,
-         files: files,
-         dropData: shouldDropArchiveData,
-       ),
+  }) : _controller = ChatController(username: username, files: files),
        _exportController = ChatExportController();
 
   @override

@@ -1,54 +1,77 @@
-import 'package:flutter/foundation.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 
 class ChatModel {
-  final List<String> usernames = [];
-  final Map<String, List<FileModel>> _userFilesMap = {};
+  final Map<String, ChatUserModel?> _userFilesMap = {};
+
+  List<String> get usernames => _userFilesMap.keys.toList();
+
+  ChatUserModel? getUserData(String username) => _userFilesMap[username];
 
   bool containsUsername(String username) {
-    return usernames.contains(username);
+    return _userFilesMap.keys.contains(username);
   }
 
   void addUser(String username) {
     if (containsUsername(username)) {
-      debugPrint('Already contains $username');
       return;
     }
-    usernames.add(username);
+    _userFilesMap[username] = ChatUserModel(
+      username: username,
+      photos: [],
+      audios: [],
+      videos: [],
+      htmls: [],
+    );
   }
 
   void addFileToUser(String username, FileModel file) {
-    if (!containsUsername(username)) {
-      addUser(username);
+    addUser(username);
+    if (file.type == FileType.photo) {
+      _userFilesMap[username]!.photos.add(file.fileId);
+    } else if (file.type == FileType.audio) {
+      _userFilesMap[username]!.audios.add(file.fileId);
+    } else if (file.type == FileType.video) {
+      _userFilesMap[username]!.videos.add(file.fileId);
+    } else if (file.type == FileType.html) {
+      _userFilesMap[username]!.htmls.add(file.fileId);
     }
-    if (!_userFilesMap.keys.contains(username)) {
-      _userFilesMap.putIfAbsent(username, () => []);
-    }
-    _userFilesMap[username] = _userFilesMap[username]!..add(file);
   }
 
-  List<FileModel> getAllImages(String username) {
-    List<FileModel> files = _userFilesMap[username] ?? [];
-    return files.where((file) => file.type == FileType.photo).toList();
+  List<String> getAllImages(String username) {
+    return _userFilesMap[username]?.photos ?? [];
   }
 
-  List<FileModel> getAllAudio(String username) {
-    List<FileModel> files = _userFilesMap[username] ?? [];
-    return files.where((file) => file.type == FileType.audio).toList();
+  List<String> getAllAudio(String username) {
+    return _userFilesMap[username]?.audios ?? [];
   }
 
-  List<FileModel> getAllVideos(String username) {
-    List<FileModel> files = _userFilesMap[username] ?? [];
-    return files.where((file) => file.type == FileType.video).toList();
+  List<String> getAllVideos(String username) {
+    return _userFilesMap[username]?.videos ?? [];
   }
 
-  Future<List<FileModel>> getCompleteUserData(String username) async {
-    return _userFilesMap[username] ?? [];
-  }
+  // Future<List<FileModel>> getCompleteUserData(String username) async {
+  //   return _userFilesMap[username] ?? [];
+  // }
 
   /// [exclude] points to the username whose data needs
   /// to be preserved.
-  Future<void> removeAllData() async {
-    _userFilesMap.clear();
-  }
+  // Future<void> removeAllData() async {
+  //   _userFilesMap.clear();
+  // }
+}
+
+class ChatUserModel {
+  final String username;
+  final List<String> htmls;
+  final List<String> photos;
+  final List<String> audios;
+  final List<String> videos;
+
+  ChatUserModel({
+    required this.username,
+    required this.htmls,
+    required this.photos,
+    required this.audios,
+    required this.videos,
+  });
 }
