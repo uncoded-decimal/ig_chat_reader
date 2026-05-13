@@ -4,6 +4,7 @@ import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_vi
 import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/chat_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/widgets/empty_view.dart';
+import 'package:ig_chat_reader/src/presentation/modules/home/widgets/user_tile.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class HomeView extends BaseResponsiveStatelessWidget {
@@ -121,31 +122,46 @@ class HomeView extends BaseResponsiveStatelessWidget {
   Widget get _body => StreamBuilder(
     stream: _controller.chatSubject.stream,
     builder: (context, snapshot) {
-      if (!snapshot.hasData) {
-        return _emptyView;
-      }
-      return SingleChildScrollView(
-        child: Table(
-          columnWidths: {
-            0: FlexColumnWidth(switch (currentLayoutMode) {
-              LayoutMode.mobile => 2,
-              LayoutMode.desktop => 4,
-              (_) => 3,
-            }),
-            1: FlexColumnWidth(1),
-            2: FlexColumnWidth(1),
-            3: FlexColumnWidth(1),
-          },
-          border: TableBorder(
-            horizontalInside: BorderSide(color: Colors.black26),
-          ),
-          children: [
-            _tableTitle,
-            ...snapshot.data!.usernames.map(
-              (username) => _getUserNameRow(context, username),
-            ),
-          ],
-        ),
+      return AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child:
+            !snapshot.hasData
+                ? _emptyView
+                : Column(
+                  children: [
+                    __headers,
+                    const Divider(height: 4),
+                    Expanded(
+                      child: ListView.builder(
+                        itemBuilder: (context, index) {
+                          final username = snapshot.data!.usernames.elementAt(
+                            index,
+                          );
+                          return UserTile(
+                            username: username,
+                            imageCount: _controller.getImagesCountForUsername(
+                              username,
+                            ),
+                            audioCount: _controller.getAudioCountForUsername(
+                              username,
+                            ),
+                            videoCount: _controller.getVideosCountForUsername(
+                              username,
+                            ),
+                            onTap:
+                                () => _controller.onUsernameClicked(
+                                  context,
+                                  username,
+                                ),
+                            currentLayoutMode: currentLayoutMode!,
+                          );
+                        },
+                        itemCount: snapshot.data?.usernames.length ?? 0,
+                        shrinkWrap: true,
+                      ),
+                    ),
+                  ],
+                ),
       );
     },
   );
@@ -158,48 +174,44 @@ class HomeView extends BaseResponsiveStatelessWidget {
             : const SizedBox.shrink(),
   );
 
-  TableRow get _tableTitle => TableRow(
-    decoration: BoxDecoration(color: Colors.amber.shade100),
-    children:
-        ['username', 'images', 'audio', 'videos']
-            .map(
-              (item) => Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 16,
-                ),
-                child: Text(
-                  item.toUpperCase(),
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                ),
-              ),
-            )
-            .toList(),
-  );
-
-  TableRow _getUserNameRow(BuildContext context, String username) => TableRow(
-    children:
-        [
-              username,
-              _controller.getImagesCountForUsername(username),
-              _controller.getAudioCountForUsername(username),
-              _controller.getVideosCountForUsername(username),
-            ]
-            .map(
-              (item) => InkWell(
-                onTap: () => _controller.onUsernameClicked(context, username),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 8,
-                    horizontal: 16,
-                  ),
-                  child: Text(
-                    item.toString(),
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-                  ),
-                ),
-              ),
-            )
-            .toList(),
+  Widget get __headers => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20),
+    child: Row(
+      spacing: switch (currentLayoutMode) {
+        LayoutMode.mobile => 4,
+        LayoutMode.tablet => 8,
+        (_) => 16,
+      },
+      children: [
+        Expanded(
+          flex: 3,
+          child: Text(
+            'usernames'.toUpperCase(),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            'images'.toUpperCase(),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            'audios'.toUpperCase(),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            'videos'.toUpperCase(),
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      ],
+    ),
   );
 }

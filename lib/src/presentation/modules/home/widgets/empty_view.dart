@@ -26,7 +26,6 @@ class _EmptyViewState extends State<EmptyView> {
   void _scrollListener() => setState(() {
     _currentScrollFraction =
         (_scroller.offset / _scroller.position.maxScrollExtent).clamp(0, 0.7);
-    debugPrint('cqc $_currentScrollFraction');
     _imageAlignment = Alignment(0, _currentScrollFraction * 0.4);
   });
 
@@ -122,7 +121,11 @@ class _IntroductionTile extends StatelessWidget {
           Text(
             'Drag & Drop your archive here or click anywhere.',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: switch (currentLayoutMode) {
+                LayoutMode.mobile => 8,
+                LayoutMode.tablet => 12,
+                LayoutMode.desktop => 12,
+              },
               fontWeight: FontWeight.w700,
               color: AppColors.orange,
               fontFamily: 'Roboto',
@@ -208,7 +211,7 @@ class _HowToUseCard extends StatelessWidget {
     text: TextSpan(
       children: [
         TextSpan(
-          text: '» You can find instructions to export your data ',
+          text: 'You can find instructions to export your data ',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,

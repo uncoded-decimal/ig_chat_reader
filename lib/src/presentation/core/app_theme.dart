@@ -22,5 +22,14 @@ class AppTheme {
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
     ),
+    popupMenuTheme: PopupMenuThemeData(
+      color: Colors.white,
+      surfaceTintColor: Colors.white,
+      iconColor: Colors.black,
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: Colors.black, width: 2),
+        borderRadius: BorderRadius.circular(4),
+      ),
+    ),
   );
 }
