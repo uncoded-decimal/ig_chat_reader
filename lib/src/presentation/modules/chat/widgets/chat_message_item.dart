@@ -51,7 +51,11 @@ class ChatMessageItem extends StatelessWidget {
                 if (chatMessage.timestamp != null)
                   Text(
                     DateFormat('MMM dd, yyyy').format(chatMessage.timestamp!),
-                    style: TextStyle(fontSize: 8, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                      fontSize: 8,
+                      fontWeight: FontWeight.w500,
+                      fontFamily: 'Roboto',
+                    ),
                   ),
                 SelectableText(
                   chatMessage.username,
@@ -155,7 +159,7 @@ class ChatMessageItem extends StatelessWidget {
     padding: const EdgeInsets.only(top: 12.0),
     child: SelectableText(
       DateFormat('hh:mm a').format(timestamp),
-      style: TextStyle(fontSize: 8),
+      style: TextStyle(fontSize: 8, fontFamily: 'Roboto'),
     ),
   );
 

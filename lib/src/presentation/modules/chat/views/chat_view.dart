@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
+import 'package:ig_chat_reader/src/presentation/helpers/resources/colors.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/controllers/chat_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/controllers/chat_export_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
@@ -165,79 +166,91 @@ class ChatView extends BaseResponsiveStatelessWidget {
     ],
   );
 
-  Widget get _body => StreamBuilder(
-    stream: Rx.combineLatest(
-      [
-        _controller.myName.stream,
-        _controller.chatMessagesSubject.stream,
-        _exportController.selectionMode.stream,
-        _exportController.selectedMessages.stream,
-        _controller.showAttachments.stream,
-      ],
-      (list) => {
-        'my_name': list.elementAt(0),
-        'messages': list.elementAt(1),
-        'selection_mode': list.elementAt(2),
-        'selected_messages': list.elementAt(3),
-        'show_attachments': list.elementAt(4),
+  Widget get _body => Container(
+    width: double.infinity,
+    decoration: BoxDecoration(
+      image: DecorationImage(
+        image: AssetImage('assets/images/background.png'),
+        fit: BoxFit.fitWidth,
+        opacity: 0.05,
+        colorFilter: ColorFilter.mode(AppColors.purple, BlendMode.modulate),
+      ),
+    ),
+    child: StreamBuilder(
+      stream: Rx.combineLatest(
+        [
+          _controller.myName.stream,
+          _controller.chatMessagesSubject.stream,
+          _exportController.selectionMode.stream,
+          _exportController.selectedMessages.stream,
+          _controller.showAttachments.stream,
+        ],
+        (list) => {
+          'my_name': list.elementAt(0),
+          'messages': list.elementAt(1),
+          'selection_mode': list.elementAt(2),
+          'selected_messages': list.elementAt(3),
+          'show_attachments': list.elementAt(4),
+        },
+      ),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return SizedBox.shrink();
+        }
+        final myName = snapshot.data!['my_name'] as String;
+        final messages = snapshot.data!['messages'] as List<MessageModel>;
+        final selectionMode = snapshot.data!['selection_mode'] as bool;
+        final showAttachments = snapshot.data!['show_attachments'] as bool;
+        // final selected =
+        //     snapshot.data!['selected_messages'] as List<MessageModel>;
+        return Scrollbar(
+          controller: _controller.scrollController,
+          child: ListView.builder(
+            padding: const EdgeInsets.only(bottom: 180),
+            controller: _controller.scrollController,
+            itemBuilder: (_, index) {
+              if (index == messages.length) {
+                return _controller.hasMoreContent
+                    ? Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20.0,
+                        vertical: 36,
+                      ),
+                      child: OutlinedButton(
+                        onPressed: _controller.loadNext,
+                        child: Text('Load More...'),
+                      ),
+                    )
+                    : const SizedBox(height: 80);
+              }
+              final currentItem = messages.elementAt(index);
+              final previousItem =
+                  index > 0 ? messages.elementAt(index - 1) : null;
+              final nextItem =
+                  index < messages.length - 1
+                      ? messages.elementAt(index + 1)
+                      : null;
+              return ChatMessageItem(
+                isMyMessage: currentItem.username == myName,
+                chatMessage: currentItem,
+                sameSenderAsLast:
+                    currentItem.username == previousItem?.username,
+                sameSenderAsNext: currentItem.username == nextItem?.username,
+                onAttachmentClick: _controller.onAttachmentClick,
+                selectionMode: selectionMode,
+                isSelected: _exportController.isSelected(currentItem),
+                onSelectionToggle:
+                    () => _exportController.toggleSelection(currentItem),
+                showAttachments: showAttachments,
+              );
+            },
+            itemCount: messages.length + 1,
+            addRepaintBoundaries: false,
+            addAutomaticKeepAlives: false,
+            cacheExtent: _controller.getSafeCacheLength(currentLayoutMode!),
+          ),
+        );
       },
     ),
-    builder: (context, snapshot) {
-      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return SizedBox.shrink();
-      }
-      final myName = snapshot.data!['my_name'] as String;
-      final messages = snapshot.data!['messages'] as List<MessageModel>;
-      final selectionMode = snapshot.data!['selection_mode'] as bool;
-      final showAttachments = snapshot.data!['show_attachments'] as bool;
-      // final selected =
-      //     snapshot.data!['selected_messages'] as List<MessageModel>;
-      return Scrollbar(
-        controller: _controller.scrollController,
-        child: ListView.builder(
-          padding: const EdgeInsets.only(bottom: 180),
-          controller: _controller.scrollController,
-          itemBuilder: (_, index) {
-            if (index == messages.length) {
-              return _controller.hasMoreContent
-                  ? Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20.0,
-                      vertical: 36,
-                    ),
-                    child: OutlinedButton(
-                      onPressed: _controller.loadNext,
-                      child: Text('Load More...'),
-                    ),
-                  )
-                  : const SizedBox(height: 80);
-            }
-            final currentItem = messages.elementAt(index);
-            final previousItem =
-                index > 0 ? messages.elementAt(index - 1) : null;
-            final nextItem =
-                index < messages.length - 1
-                    ? messages.elementAt(index + 1)
-                    : null;
-            return ChatMessageItem(
-              isMyMessage: currentItem.username == myName,
-              chatMessage: currentItem,
-              sameSenderAsLast: currentItem.username == previousItem?.username,
-              sameSenderAsNext: currentItem.username == nextItem?.username,
-              onAttachmentClick: _controller.onAttachmentClick,
-              selectionMode: selectionMode,
-              isSelected: _exportController.isSelected(currentItem),
-              onSelectionToggle:
-                  () => _exportController.toggleSelection(currentItem),
-              showAttachments: showAttachments,
-            );
-          },
-          itemCount: messages.length + 1,
-          addRepaintBoundaries: false,
-          addAutomaticKeepAlives: false,
-          cacheExtent: _controller.getSafeCacheLength(currentLayoutMode!),
-        ),
-      );
-    },
   );
 }
