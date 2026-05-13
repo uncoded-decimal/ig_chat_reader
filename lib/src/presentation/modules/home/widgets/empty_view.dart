@@ -31,7 +31,8 @@ class _EmptyViewState extends State<EmptyView> {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         image: DecorationImage(
           image: AssetImage('assets/images/background.png'),
@@ -100,12 +101,21 @@ class _IntroductionTile extends StatelessWidget {
               children: [
                 TextSpan(
                   text: 'Upload your',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: switch (currentLayoutMode) {
+                      LayoutMode.desktop => 36,
+                      (_) => 24,
+                    },
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 TextSpan(
                   text: ' Instagram Archive ',
                   style: TextStyle(
-                    fontSize: 28,
+                    fontSize: switch (currentLayoutMode) {
+                      LayoutMode.desktop => 40,
+                      (_) => 28,
+                    },
                     fontWeight: FontWeight.w600,
                     color: AppColors.purple,
                     fontFamily: 'Quicksand',
@@ -113,7 +123,13 @@ class _IntroductionTile extends StatelessWidget {
                 ),
                 TextSpan(
                   text: 'to get started.',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: switch (currentLayoutMode) {
+                      LayoutMode.desktop => 36,
+                      (_) => 24,
+                    },
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ],
             ),
