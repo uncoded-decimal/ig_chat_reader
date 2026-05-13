@@ -195,6 +195,7 @@ class ChatView extends BaseResponsiveStatelessWidget {
       return Scrollbar(
         controller: _controller.scrollController,
         child: ListView.builder(
+          padding: const EdgeInsets.only(bottom: 180),
           controller: _controller.scrollController,
           itemBuilder: (_, index) {
             if (index == messages.length) {
