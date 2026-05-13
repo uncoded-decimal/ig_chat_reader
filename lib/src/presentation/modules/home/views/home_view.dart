@@ -3,6 +3,7 @@ import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/chat_model.dart';
+import 'package:ig_chat_reader/src/presentation/modules/home/widgets/empty_view.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class HomeView extends BaseResponsiveStatelessWidget {
@@ -29,7 +30,7 @@ class HomeView extends BaseResponsiveStatelessWidget {
 
   Widget get _bottomNavBar => Container(
     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-    color: Colors.blueGrey.shade100,
+    color: _controller.currentTheme.bottomNavigationBarTheme.backgroundColor,
     child: Row(
       children: [
         TextButton(
@@ -56,28 +57,40 @@ class HomeView extends BaseResponsiveStatelessWidget {
   );
 
   AppBar get _appBar => AppBar(
-    toolbarHeight: 120,
+    toolbarHeight: 100,
     automaticallyImplyLeading: false,
-    centerTitle: false,
     title: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: 8,
       children: [
-        if (currentLayoutMode != LayoutMode.mobile)
-          ResponsiveGraphicView.vector(
-            path: 'assets/vectors/ig_chat_reader.svg',
-            fit: BoxFit.contain,
-            height: 60,
-          ),
+        ResponsiveGraphicView.image(
+          path: 'assets/images/ig_chat_reader.png',
+          fit: BoxFit.contain,
+          height: 60,
+        ),
         RichText(
           text: TextSpan(
             children: [
               TextSpan(
                 text: 'Instagram',
-                style: TextStyle(fontSize: 64, fontWeight: FontWeight.w400),
+                style: TextStyle(
+                  fontSize: switch (currentLayoutMode) {
+                    LayoutMode.mobile => 36,
+                    (_) => 48,
+                  },
+                  fontWeight: FontWeight.w600,
+                  fontFamily: 'Quicksand',
+                ),
               ),
               TextSpan(
                 text: '\nChat Reader',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800),
+                style: TextStyle(
+                  fontSize: switch (currentLayoutMode) {
+                    LayoutMode.mobile => 18,
+                    (_) => 24,
+                  },
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ],
           ),
@@ -139,76 +152,10 @@ class HomeView extends BaseResponsiveStatelessWidget {
 
   Widget get _emptyView => InkWell(
     onTap: _controller.pickFile,
-    child: Container(
-      margin: const EdgeInsets.all(20),
-      padding: switch (currentLayoutMode) {
-        LayoutMode.mobile => const EdgeInsets.all(24),
-        (_) => const EdgeInsets.all(64),
-      },
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: Colors.blueGrey.shade100,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        spacing: 16,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Upload your Instagram archive here',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.w100),
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            'You can request an HTML export of your data using the Instagram app or website to view and browse your DM\'s using this tool',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: Colors.black54,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '- 100% Free Tool',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: Colors.black87,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            '- No Data leaves your device',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: Colors.black87,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          Text(
-            '- Privacy-focused',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w300,
-              color: Colors.black87,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Drag & Drop your archive here or Click anywhere to get started',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Colors.black38,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    ),
+    child:
+        currentLayoutMode != null
+            ? EmptyView(currentLayoutMode: currentLayoutMode!)
+            : const SizedBox.shrink(),
   );
 
   TableRow get _tableTitle => TableRow(

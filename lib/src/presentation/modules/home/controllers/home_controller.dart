@@ -18,6 +18,8 @@ class HomeController with AppOpsMixin {
   final BehaviorSubject<String> dndEventSubject = BehaviorSubject.seeded('');
   final BehaviorSubject<ChatModel?> chatSubject = BehaviorSubject.seeded(null);
 
+  ThemeData get currentTheme => Theme.of(_navigator.context);
+
   void init(BuildContext context) {
     _navigator = Navigator.of(context);
     _setupDropAndDrop();

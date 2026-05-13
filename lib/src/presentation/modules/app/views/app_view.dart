@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/components/loading_screen.dart';
+import 'package:ig_chat_reader/src/presentation/core/app_theme.dart';
 import 'package:ig_chat_reader/src/presentation/modules/app/controllers/app_controller.dart';
 import 'package:ig_chat_reader/src/presentation/router/router.dart';
 
@@ -13,9 +14,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Instagram Chat Reader',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-      ),
+      theme: AppTheme.appTheme,
       debugShowCheckedModeBanner: false,
       initialRoute: AppRouter.initialRoute,
       onGenerateRoute: AppRouter.generateRoutes,
