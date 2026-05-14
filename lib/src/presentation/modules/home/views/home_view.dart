@@ -3,6 +3,7 @@ import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/controllers/home_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/chat_model.dart';
+import 'package:ig_chat_reader/src/presentation/modules/home/widgets/buymeachai_button.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/widgets/empty_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/widgets/user_tile.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -53,6 +54,8 @@ class HomeView extends BaseResponsiveStatelessWidget {
           onPressed: _controller.requestHelp,
           child: Text('Need Help?', style: TextStyle(fontSize: 12)),
         ),
+        const Spacer(),
+        const BuyMeAChaiButton(),
       ],
     ),
   );
