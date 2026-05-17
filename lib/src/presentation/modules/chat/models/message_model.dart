@@ -75,7 +75,7 @@ class Content {
             : content.text;
     return Content(
       message: textContent,
-      media: mediaList,
+      media: mediaList.toSet().toList(),
       reactions: reactions,
       type: contentType,
     );
