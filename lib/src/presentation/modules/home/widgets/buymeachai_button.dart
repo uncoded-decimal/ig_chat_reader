@@ -12,7 +12,7 @@ class BuyMeAChaiButton extends StatelessWidget {
         window.open('https://buymeachai.ezee.li/uncoded_decimal', '_blank');
       },
       child: ResponsiveGraphicView.image(
-        path: 'https://buymeachai.ezee.li/assets/images/buymeachai-button.png',
+        path: 'assets/images/buymeachai-button.png',
         height: 24,
       ),
     );
