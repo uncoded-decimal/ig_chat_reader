@@ -3,14 +3,14 @@ import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/attachment_tile.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 
-class AllVideosView extends BaseResponsiveStatelessWidget {
-  final List<FileModel> videos;
-  final List<Map<String, String>> videoUsernames;
+class AllAudiosView extends BaseResponsiveStatelessWidget {
+  final List<FileModel> audios;
+  final List<Map<String, String>> audioUsernames;
   final void Function(String url) onClick;
-  AllVideosView({
+  AllAudiosView({
     super.key,
-    required this.videos,
-    required this.videoUsernames,
+    required this.audios,
+    required this.audioUsernames,
     required this.onClick,
   });
 
@@ -19,7 +19,7 @@ class AllVideosView extends BaseResponsiveStatelessWidget {
     return Scaffold(appBar: _appBar, body: _body);
   }
 
-  AppBar get _appBar => AppBar(title: Text('All Videos'));
+  AppBar get _appBar => AppBar(title: Text('All Audios'));
 
   Widget get _body => GridView.builder(
     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -29,14 +29,16 @@ class AllVideosView extends BaseResponsiveStatelessWidget {
         LayoutMode.desktop => 6,
         (_) => 4,
       },
-      childAspectRatio: 1 / 1.3,
+      crossAxisSpacing: 2,
+      mainAxisSpacing: 2,
+      childAspectRatio: 1 / 1.2,
     ),
-    itemCount: videos.length,
+    itemCount: audios.length,
     itemBuilder: (context, index) {
-      final file = videos.elementAt(index);
+      final file = audios.elementAt(index);
       final username =
-          videoUsernames
-              .firstWhere((map) => map['video'] == file.fileId)['username']
+          audioUsernames
+              .firstWhere((map) => map['audio'] == file.fileId)['username']
               .toString();
       return Stack(
         children: [

@@ -105,6 +105,13 @@ class ChatView extends BaseResponsiveStatelessWidget {
             (_) => [
               PopupMenuItem(
                 child: ListTile(
+                  leading: Icon(Icons.audio_file),
+                  title: Text('View all Audios'),
+                  onTap: _controller.viewAllAudios,
+                ),
+              ),
+              PopupMenuItem(
+                child: ListTile(
                   leading: Icon(Icons.image),
                   title: Text('View all Photos'),
                   onTap: _controller.viewAllPhotos,

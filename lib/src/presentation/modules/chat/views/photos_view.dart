@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
+import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 
 class AllPhotosView extends BaseResponsiveStatelessWidget {
   final List<FileModel> photos;
+  final List<Map<String, String>> photoUsernames;
   final void Function(String url) onClick;
-  AllPhotosView({super.key, required this.photos, required this.onClick});
+  AllPhotosView({
+    super.key,
+    required this.photos,
+    required this.photoUsernames,
+    required this.onClick,
+  });
 
   @override
   Widget defaultWidget(BuildContext context) {
@@ -22,18 +29,39 @@ class AllPhotosView extends BaseResponsiveStatelessWidget {
         LayoutMode.desktop => 6,
         (_) => 4,
       },
-      crossAxisSpacing: 2,
-      mainAxisSpacing: 2,
+      childAspectRatio: 1 / 1.5,
     ),
     itemCount: photos.length,
-    itemBuilder:
-        (context, index) => InkWell(
-          onTap: () => onClick(photos.elementAt(index).blobUrl!),
-          child: Image.network(
-            photos.elementAt(index).blobUrl!,
-            width: double.maxFinite,
-            fit: BoxFit.cover,
-          ),
+    itemBuilder: (context, index) {
+      final file = photos.elementAt(index);
+      final username =
+          photoUsernames
+              .firstWhere((map) => map['photo'] == file.fileId)['username']
+              .toString();
+      return InkWell(
+        onTap: () => onClick(file.blobUrl!),
+        child: Stack(
+          children: [
+            SizedBox.expand(
+              child: ResponsiveGraphicView.image(
+                path: file.blobUrl!,
+                fit: BoxFit.fill,
+              ),
+            ),
+            Chip(
+              label: Text(
+                username,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black,
+                  fontFamily: 'Roboto',
+                ),
+              ),
+            ),
+          ],
         ),
+      );
+    },
   );
 }

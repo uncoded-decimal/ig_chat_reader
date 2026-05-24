@@ -53,6 +53,13 @@ class ChatController with AppOpsMixin {
     }
   }
 
+  List<FileModel> get allAudios =>
+      files
+          .where((file) => file.type == FileType.audio)
+          .toList()
+          .reversed
+          .toList();
+
   List<FileModel> get allPhotos =>
       files
           .where((file) => file.type == FileType.photo)
@@ -358,24 +365,77 @@ class ChatController with AppOpsMixin {
     playButtonElement.click();
   }
 
-  void viewAllPhotos() {
-    _navigator.pushNamed(
-      AppRoutes.allChatPhotos,
-      arguments: {
-        'photos': allPhotos,
-        'onClick': (String url) => window.open(url, 'new'),
-      },
-    );
+  void viewAllAudios() {
+    try {
+      final List<Map<String, String>> audioUsernameList = [];
+      for (FileModel file in allAudios) {
+        final message = chatMessagesSubject.valueOrNull?.firstWhere(
+          (message) => message.files.contains(file),
+        );
+        final sender = message?.username ?? '';
+        audioUsernameList.add({'username': sender, 'audio': file.fileId});
+      }
+      _navigator.pushNamed(
+        AppRoutes.allChatAudios,
+        arguments: {
+          'audios': allAudios,
+          'audio_username': audioUsernameList,
+          'onClick': (String url) => playAudio(url),
+        },
+      );
+    } catch (e) {
+      showMessage('No Audios found in currently loaded chat');
+    }
+  }
+
+  void viewAllPhotos() async {
+    try {
+      final List<Map<String, String>> photoUsernameList = [];
+      for (FileModel file in allPhotos) {
+        final message = chatMessagesSubject.valueOrNull?.firstWhere(
+          (message) => message.files.contains(file),
+        );
+        final sender = message?.username ?? '';
+        photoUsernameList.add({'username': sender, 'photo': file.fileId});
+        await file.createBlobUrls();
+      }
+      await _navigator.pushNamed(
+        AppRoutes.allChatPhotos,
+        arguments: {
+          'photos': allPhotos,
+          'photo_username': photoUsernameList,
+          'onClick': (String url) => window.open(url, 'new'),
+        },
+      );
+      for (FileModel file in allPhotos) {
+        file.revokeFileUrl();
+      }
+    } catch (e) {
+      showMessage('No Photos found in currently loaded chat');
+    }
   }
 
   void viewAllVideos() {
-    _navigator.pushNamed(
-      AppRoutes.allChatVideos,
-      arguments: {
-        'videos': allVideos,
-        'onClick': (String url) => window.open(url, '_blank'),
-      },
-    );
+    try {
+      final List<Map<String, String>> videoUsernameList = [];
+      for (FileModel file in allVideos) {
+        final message = chatMessagesSubject.valueOrNull?.firstWhere(
+          (message) => message.files.contains(file),
+        );
+        final sender = message?.username ?? '';
+        videoUsernameList.add({'username': sender, 'video': file.fileId});
+      }
+      _navigator.pushNamed(
+        AppRoutes.allChatVideos,
+        arguments: {
+          'videos': allVideos,
+          'video_username': videoUsernameList,
+          'onClick': (String url) => window.open(url, '_blank'),
+        },
+      );
+    } catch (e) {
+      showMessage('No Videos found in currently loaded chat');
+    }
   }
 
   void onNameChange(String? value) {

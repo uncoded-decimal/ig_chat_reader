@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ig_chat_reader/src/presentation/modules/chat/views/audios_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/views/chat_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/views/export_view.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/views/photos_view.dart';
@@ -24,6 +25,7 @@ class AppRouter {
         builder:
             (_) => AllPhotosView(
               photos: (settings.arguments as Map?)!['photos'],
+              photoUsernames: (settings.arguments as Map?)!['photo_username'],
               onClick: (settings.arguments as Map?)!['onClick'],
             ),
       );
@@ -32,6 +34,16 @@ class AppRouter {
         builder:
             (_) => AllVideosView(
               videos: (settings.arguments as Map?)!['videos'],
+              videoUsernames: (settings.arguments as Map?)!['video_username'],
+              onClick: (settings.arguments as Map?)!['onClick'],
+            ),
+      );
+    } else if (settings.name == AppRoutes.allChatAudios) {
+      return MaterialPageRoute(
+        builder:
+            (_) => AllAudiosView(
+              audios: (settings.arguments as Map?)!['audios'],
+              audioUsernames: (settings.arguments as Map?)!['audio_username'],
               onClick: (settings.arguments as Map?)!['onClick'],
             ),
       );
