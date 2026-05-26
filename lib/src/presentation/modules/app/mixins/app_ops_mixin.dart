@@ -7,6 +7,8 @@ mixin AppOpsMixin {
 
   void setGlobalLoading(bool loading) => _controller.loading.sink.add(loading);
 
+  void showMediumArticle() => _controller.showMediumArticle();
+
   void showGitHub() => _controller.showDeveloperProfile();
 
   void setUsername(String name) {

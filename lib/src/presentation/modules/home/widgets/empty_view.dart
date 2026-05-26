@@ -1,7 +1,9 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
+import 'package:ig_chat_reader/src/presentation/components/responsive_graphic_view.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/resources/colors.dart';
+import 'package:ig_chat_reader/src/presentation/modules/app/mixins/app_ops_mixin.dart';
 import 'package:web/web.dart' show window;
 
 class EmptyView extends StatefulWidget {
@@ -47,8 +49,13 @@ class _EmptyViewState extends State<EmptyView> {
         padding: _padding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          spacing: 24,
-          children: [_introduction, _howToUse(context), _features(context)],
+          spacing: 36 * _currentScrollFraction,
+          children: [
+            _introduction,
+            _howToUse(context),
+            _features(context),
+            _devTile(context),
+          ],
         ),
       ),
     );
@@ -70,6 +77,11 @@ class _EmptyViewState extends State<EmptyView> {
 
   Widget _howToUse(BuildContext context) =>
       _HowToUseCard(currentLayoutMode: widget.currentLayoutMode);
+
+  Widget _devTile(BuildContext context) => _DeveloperTile(
+    currentLayoutMode: widget.currentLayoutMode,
+    currentScrollFraction: _currentScrollFraction,
+  );
 
   @override
   void dispose() {
@@ -339,5 +351,121 @@ class _FeatureCard extends StatelessWidget {
         ),
       ),
     ],
+  );
+}
+
+class _DeveloperTile extends StatelessWidget with AppOpsMixin {
+  final LayoutMode currentLayoutMode;
+  final double currentScrollFraction;
+  _DeveloperTile({
+    required this.currentLayoutMode,
+    required this.currentScrollFraction,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: __cardPadding,
+        child: Expanded(
+          child: Column(
+            spacing: 8,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _articleLinkWidget,
+              _devProfileLinkWidget,
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: ResponsiveGraphicView.image(
+                  path: 'https://avatars.githubusercontent.com/u/30970288',
+                  height:
+                      currentScrollFraction *
+                      switch (currentLayoutMode) {
+                        LayoutMode.mobile => 64,
+                        LayoutMode.tablet => 96,
+                        LayoutMode.desktop => 140,
+                      },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  EdgeInsets get __cardPadding => switch (currentLayoutMode) {
+    LayoutMode.mobile => EdgeInsets.all(16),
+    LayoutMode.tablet => EdgeInsets.all(24),
+    LayoutMode.desktop => EdgeInsets.all(64),
+  };
+
+  Widget get _articleLinkWidget => RichText(
+    text: TextSpan(
+      children: [
+        TextSpan(
+          text: 'How does this app work? Read about it ',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'Quicksand',
+          ),
+        ),
+        TextSpan(
+          text: 'here',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.violet,
+            decoration: TextDecoration.underline,
+            fontFamily: 'Quicksand',
+          ),
+          recognizer: TapGestureRecognizer()..onTap = showMediumArticle,
+        ),
+        TextSpan(
+          text: '.',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'Quicksand',
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget get _devProfileLinkWidget => RichText(
+    text: TextSpan(
+      children: [
+        TextSpan(
+          text: 'Developer Contact: ',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'Quicksand',
+          ),
+        ),
+        TextSpan(
+          text: 'GitHub',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.violet,
+            decoration: TextDecoration.underline,
+            fontFamily: 'Quicksand',
+          ),
+          recognizer: TapGestureRecognizer()..onTap = showGitHub,
+        ),
+        TextSpan(
+          text: '.',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w500,
+            fontFamily: 'Quicksand',
+          ),
+        ),
+      ],
+    ),
   );
 }

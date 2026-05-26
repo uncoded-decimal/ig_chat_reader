@@ -17,6 +17,13 @@ class AppController {
     await _opfs.initialise();
   }
 
+  void showMediumArticle() {
+    window.open(
+      'https://uncoded-decimal.medium.com/flutter-web-how-i-built-an-instagram-chat-reader-b1d8c79de5d9',
+      '_blank',
+    );
+  }
+
   void showDeveloperProfile() {
     window.open('https://github.com/uncoded-decimal', '_blank');
   }
