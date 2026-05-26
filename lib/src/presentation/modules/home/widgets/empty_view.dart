@@ -367,29 +367,28 @@ class _DeveloperTile extends StatelessWidget with AppOpsMixin {
     return Card(
       child: Padding(
         padding: __cardPadding,
-        child: Expanded(
-          child: Column(
-            spacing: 8,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _articleLinkWidget,
-              _devProfileLinkWidget,
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: ResponsiveGraphicView.image(
-                  path: 'https://avatars.githubusercontent.com/u/30970288',
-                  height:
-                      currentScrollFraction *
-                      switch (currentLayoutMode) {
-                        LayoutMode.mobile => 64,
-                        LayoutMode.tablet => 96,
-                        LayoutMode.desktop => 140,
-                      },
-                ),
+        child: Column(
+          spacing: 8,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _articleLinkWidget,
+            _devProfileLinkWidget,
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: ResponsiveGraphicView.image(
+                path: 'https://avatars.githubusercontent.com/u/30970288',
+                height:
+                    currentScrollFraction *
+                    switch (currentLayoutMode) {
+                      LayoutMode.mobile => 64,
+                      LayoutMode.tablet => 96,
+                      LayoutMode.desktop => 140,
+                    },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
