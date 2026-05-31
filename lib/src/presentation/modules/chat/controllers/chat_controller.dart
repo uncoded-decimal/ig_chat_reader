@@ -30,6 +30,8 @@ class ChatController with AppOpsMixin {
 
   final BehaviorSubject<Set<String>> namesFound = BehaviorSubject();
   final BehaviorSubject<String> myName = BehaviorSubject.seeded('');
+
+  // all chat messages are channeled into this
   final BehaviorSubject<List<MessageModel>> chatMessagesSubject =
       BehaviorSubject.seeded([]);
 
@@ -97,11 +99,12 @@ class ChatController with AppOpsMixin {
   }
 
   void init(BuildContext context) async {
+    _navigator = Navigator.of(context);
+    _addKeyboardActions();
     //set to load maximum of 3 images at a time
     PaintingBinding.instance.imageCache.maximumSize = 3;
     //set to load maximum of 50 MB in image cache
     PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024;
-    _navigator = Navigator.of(context);
     _setupAudioPlayer();
     await _processChat();
     myName.waitUntilValue().then((name) async {
@@ -114,6 +117,28 @@ class ChatController with AppOpsMixin {
               .replaceAll(RegExp(r'[^a-zA-Z0-9:]'), '_')
               .toLowerCase();
       _setupChatProgress();
+    });
+  }
+
+  void _addKeyboardActions() {
+    final screenHeight = MediaQuery.sizeOf(_navigator.context).height;
+    window.onKeyDown.listen((KeyboardEvent event) {
+      switch (event.keyCode) {
+        case 40:
+          scrollController.animateTo(
+            scrollController.offset + screenHeight / 2,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCirc,
+          );
+          break;
+        case 38:
+          scrollController.animateTo(
+            scrollController.offset - screenHeight / 2,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOutCirc,
+          );
+          break;
+      }
     });
   }
 
