@@ -187,7 +187,10 @@ class ChatController with AppOpsMixin {
     double scrolledLength = 0;
     do {
       setGlobalLoading(true);
-      showAttachments.sink.add(false);
+
+      // disabling hiding to ensure accurate scrolls
+      // showAttachments.sink.add(false);
+
       await Future.delayed(const Duration(milliseconds: 100));
       await scrollController.animateTo(
         scrolledLength,
