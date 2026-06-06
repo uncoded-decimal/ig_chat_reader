@@ -7,6 +7,7 @@ import 'package:html/parser.dart';
 import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/extensions/rxdart_extension.dart';
 import 'package:ig_chat_reader/src/presentation/modules/app/mixins/app_ops_mixin.dart';
+import 'package:ig_chat_reader/src/presentation/modules/chat/controllers/find_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/home/models/file_model.dart';
 import 'package:ig_chat_reader/src/presentation/router/routes.dart';
@@ -16,6 +17,8 @@ import 'package:web/web.dart' hide Element, Navigator, Text;
 class ChatController with AppOpsMixin {
   final String username;
   final List<FileModel> files;
+
+  late final FindController _findController;
 
   ChatController({required this.username, required this.files});
 
@@ -42,6 +45,8 @@ class ChatController with AppOpsMixin {
   String? _chatKey;
 
   bool get hasMoreContent => _loadedFileIDs.length < _chatFiles.length;
+
+  BuildContext get context => _navigator.context;
 
   double getSafeCacheLength(LayoutMode currentLayoutMode) {
     if (_chatFiles.length == 1) {
@@ -107,6 +112,7 @@ class ChatController with AppOpsMixin {
     PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024;
     _setupAudioPlayer();
     await _processChat();
+    _findController = FindController(chatController: this);
     myName.waitUntilValue().then((name) async {
       final sortedNames =
           (await namesFound.waitUntilValue()).toList()
@@ -138,6 +144,12 @@ class ChatController with AppOpsMixin {
             curve: Curves.easeInOutCirc,
           );
           break;
+      }
+    });
+
+    window.onKeyPress.listen((KeyboardEvent event) {
+      if (event.ctrlKey && event.code == 'KeyF') {
+        startFinder();
       }
     });
   }
@@ -315,6 +327,8 @@ class ChatController with AppOpsMixin {
     onNameChange(differentName);
   }
 
+  bool getIsMyMessage(String username) => myName.valueOrNull == username;
+
   Future<List<MessageModel>> __processHTMLContent(String content) async {
     final Set<String> usernamesFound = {};
     List<MessageModel> messages = [];
@@ -473,6 +487,8 @@ class ChatController with AppOpsMixin {
     myName.sink.add(value);
     setUsername(value);
   }
+
+  void startFinder() => _findController.showFindDialogBox();
 
   void showMessage(String message) => ScaffoldMessenger.of(
     _navigator.context,

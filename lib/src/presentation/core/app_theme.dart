@@ -17,6 +17,22 @@ class AppTheme {
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(foregroundColor: WidgetStatePropertyAll(Colors.white)),
     ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: ButtonStyle(
+        padding: WidgetStatePropertyAll(
+          EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+        ),
+        fixedSize: WidgetStatePropertyAll(Size(120, 52)),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(
+        padding: WidgetStatePropertyAll(
+          EdgeInsets.symmetric(vertical: 8, horizontal: 20),
+        ),
+        fixedSize: WidgetStatePropertyAll(Size(120, 52)),
+      ),
+    ),
     cardTheme: CardTheme(
       elevation: 2,
       color: Colors.white,
@@ -30,6 +46,10 @@ class AppTheme {
         side: BorderSide(color: Colors.black, width: 2),
         borderRadius: BorderRadius.circular(4),
       ),
+    ),
+    dialogTheme: DialogThemeData(
+      insetPadding: EdgeInsets.all(20),
+      backgroundColor: Colors.white,
     ),
   );
 }

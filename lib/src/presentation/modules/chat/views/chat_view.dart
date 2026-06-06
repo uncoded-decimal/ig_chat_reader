@@ -82,6 +82,7 @@ class ChatView extends BaseResponsiveStatelessWidget {
           );
         },
       ),
+      IconButton(onPressed: _controller.startFinder, icon: Icon(Icons.search)),
       StreamBuilder<Map>(
         stream: Rx.combineLatest2(
           _exportController.selectionMode.stream,
@@ -204,12 +205,10 @@ class ChatView extends BaseResponsiveStatelessWidget {
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return SizedBox.shrink();
         }
-        final myName = snapshot.data!['my_name'] as String;
+        // final myName = snapshot.data!['my_name'] as String;
         final messages = snapshot.data!['messages'] as List<MessageModel>;
         final selectionMode = snapshot.data!['selection_mode'] as bool;
         final showAttachments = snapshot.data!['show_attachments'] as bool;
-        // final selected =
-        //     snapshot.data!['selected_messages'] as List<MessageModel>;
         return Scrollbar(
           controller: _controller.scrollController,
           child: ListView.builder(
@@ -238,7 +237,7 @@ class ChatView extends BaseResponsiveStatelessWidget {
                       ? messages.elementAt(index + 1)
                       : null;
               return ChatMessageItem(
-                isMyMessage: currentItem.username == myName,
+                isMyMessage: _controller.getIsMyMessage(currentItem.username),
                 chatMessage: currentItem,
                 sameSenderAsLast:
                     currentItem.username == previousItem?.username,
