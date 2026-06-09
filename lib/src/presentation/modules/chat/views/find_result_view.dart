@@ -1,26 +1,38 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:ig_chat_reader/src/presentation/components/base_view.dart';
+import 'package:ig_chat_reader/src/presentation/components/loading_screen.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/controllers/find_controller.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/chat_message_item.dart';
 
-class FindResultView extends StatelessWidget {
+class FindResultView extends BaseResponsiveStatelessWidget {
   final FindController _controller;
 
-  const FindResultView({super.key, required FindController controller})
+  FindResultView({super.key, required FindController controller})
     : _controller = controller;
 
   @override
-  Widget build(BuildContext context) {
+  Widget defaultWidget(BuildContext context) {
     return Scaffold(
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _findResultTitle,
-          Expanded(child: _findResultMessages),
-          _actionButtons,
-        ],
+      body: StreamBuilder<bool>(
+        stream: _controller.isLoading.stream,
+        builder: (context, snapshot) {
+          return Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _findResultTitle,
+                  Expanded(child: _findResultMessages),
+                  _actionButtons,
+                ],
+              ),
+              if (!snapshot.hasData || snapshot.data!) const LoadingScreen(),
+            ],
+          );
+        },
       ),
     );
   }
@@ -50,12 +62,16 @@ class FindResultView extends StatelessWidget {
             border: Border.all(color: Colors.black54, width: 1.2),
           ),
           child: ListView.builder(
+            controller: _controller.findResultScrollController,
             itemCount: list.length,
             itemBuilder: (_, index) {
               final currentItem = list.elementAt(index);
               final previousItem = index > 0 ? list.elementAt(index - 1) : null;
               final nextItem =
                   index < list.length - 1 ? list.elementAt(index + 1) : null;
+              final isMarked = _controller.stringContainsQuery(
+                currentItem.content.message,
+              );
               return ChatMessageItem(
                 isMyMessage: _controller.chatController.getIsMyMessage(
                   currentItem.username,
@@ -66,7 +82,7 @@ class FindResultView extends StatelessWidget {
                 sameSenderAsNext: currentItem.username == nextItem?.username,
                 onAttachmentClick: _controller.chatController.onAttachmentClick,
                 selectionMode: false,
-                isSelected: false,
+                isSelected: isMarked,
                 onSelectionToggle: () {},
                 showAttachments:
                     _controller.chatController.showAttachments.valueOrNull ??
@@ -95,7 +111,13 @@ class FindResultView extends StatelessWidget {
           children: [
             OutlinedButton(
               onPressed: () {
-                completer.complete(false);
+                try {
+                  completer.complete(false);
+                } on StateError catch (_) {
+                  debugPrint(
+                    'last result; nothing new found with completer already finished.',
+                  );
+                }
                 Navigator.of(context).pop();
               },
               child: Text('Stop'),

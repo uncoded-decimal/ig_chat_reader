@@ -17,6 +17,8 @@ class FindController {
   final BehaviorSubject<List<MessageModel>> messages = BehaviorSubject();
   final BehaviorSubject<Completer> findContinueCompleter = BehaviorSubject();
 
+  final findResultScrollController = ScrollController();
+
   void showFindDialogBox() {
     showAdaptiveDialog(
       context: chatController.context,
@@ -58,16 +60,14 @@ class FindController {
     final chat = chatController.chatMessagesSubject.value;
     for (int i = startIndex; i < chat.length; i++) {
       isLoading.sink.add(true);
-      final message = chat.elementAt(i);
-      final containsQuery = message.content.message.toLowerCase().contains(
-        query.toLowerCase(),
-      );
+      final messageItem = chat.elementAt(i);
+      final containsQuery = stringContainsQuery(messageItem.content.message);
       isLoading.sink.add(false);
       if (containsQuery) {
         final continueSearch = await __onQueryFound(
           foundAtIndex: i,
           query: query,
-          message: message,
+          message: messageItem,
         );
         if (!continueSearch) {
           return false;
@@ -75,6 +75,16 @@ class FindController {
       }
     }
     return true;
+  }
+
+  bool stringContainsQuery(String message) {
+    final trimmedText = message.replaceAll('\b', '').toLowerCase().trim();
+    final query =
+        queryTextController.value.text
+            .replaceAll('\b', '')
+            .toLowerCase()
+            .trim();
+    return trimmedText.contains(query);
   }
 
   Future<bool> __onQueryFound({
@@ -89,7 +99,14 @@ class FindController {
 
     Completer findResultAction = Completer();
     findContinueCompleter.sink.add(findResultAction);
-    messages.sink.add([message]);
+
+    final messagesList = chatController.chatMessagesSubject.value.sublist(
+      foundAtIndex - 11,
+      foundAtIndex + 10,
+    );
+    messages.sink.add(messagesList);
+
+    await _scrollToHalf();
 
     continueSearch = await findResultAction.future;
     if (continueSearch) {
@@ -110,4 +127,16 @@ class FindController {
           settings: RouteSettings(name: '/find_result'),
         ),
       );
+
+  Future<void> _scrollToHalf() async {
+    if (!findResultScrollController.hasClients) {
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    final scrollLength = findResultScrollController.position.maxScrollExtent;
+    await findResultScrollController.animateTo(
+      scrollLength / 2,
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeInBack,
+    );
+  }
 }

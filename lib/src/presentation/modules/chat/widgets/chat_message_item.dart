@@ -186,13 +186,15 @@ class ChatMessageItem extends StatelessWidget {
                           size: 24,
                           color: Colors.black54,
                         ),
-                        Text(
-                          'Temporary content',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black54,
-                            fontStyle: FontStyle.italic,
+                        Flexible(
+                          child: Text(
+                            'Temporary content',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black54,
+                              fontStyle: FontStyle.italic,
+                            ),
                           ),
                         ),
                       ],
