@@ -101,8 +101,10 @@ class FindController {
     findContinueCompleter.sink.add(findResultAction);
 
     final messagesList = chatController.chatMessagesSubject.value.sublist(
-      foundAtIndex - 11,
-      foundAtIndex + 10,
+      foundAtIndex < 11 ? 0 : foundAtIndex - 11,
+      (chatController.chatMessagesSubject.value.length - foundAtIndex < 10)
+          ? chatController.chatMessagesSubject.value.length
+          : foundAtIndex + 10,
     );
     messages.sink.add(messagesList);
 
