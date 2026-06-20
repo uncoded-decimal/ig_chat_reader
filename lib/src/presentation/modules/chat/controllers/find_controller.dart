@@ -61,7 +61,7 @@ class FindController {
     for (int i = startIndex; i < chat.length; i++) {
       isLoading.sink.add(true);
       final messageItem = chat.elementAt(i);
-      final containsQuery = stringContainsQuery(messageItem.content.message);
+      final containsQuery = _stringContainsQuery(messageItem.content.message);
       isLoading.sink.add(false);
       if (containsQuery) {
         final continueSearch = await __onQueryFound(
@@ -77,7 +77,7 @@ class FindController {
     return true;
   }
 
-  bool stringContainsQuery(String message) {
+  bool _stringContainsQuery(String message) {
     final trimmedText = message.replaceAll('\b', '').toLowerCase().trim();
     final query =
         queryTextController.value.text

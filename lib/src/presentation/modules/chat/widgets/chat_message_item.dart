@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ig_chat_reader/src/presentation/helpers/resources/colors.dart';
 import 'package:ig_chat_reader/src/presentation/helpers/resources/strings.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/models/message_model.dart';
 import 'package:ig_chat_reader/src/presentation/modules/chat/widgets/attachment_tile.dart';
@@ -18,6 +19,8 @@ class ChatMessageItem extends StatelessWidget {
 
   final bool showAttachments;
 
+  final String? queryText;
+
   const ChatMessageItem({
     super.key,
     required this.isMyMessage,
@@ -29,6 +32,7 @@ class ChatMessageItem extends StatelessWidget {
     required this.isSelected,
     required this.onSelectionToggle,
     required this.showAttachments,
+    this.queryText,
   });
 
   @override
@@ -201,8 +205,11 @@ class ChatMessageItem extends StatelessWidget {
                     )
                     : chatMessage.content.message.split('\n').length > 3
                     ? ___getLongMessageWidget(chatMessage.content.message)
-                    : SelectableText(
-                      chatMessage.content.message,
+                    : SelectableText.rich(
+                      _buildHighlightedSpan(
+                        chatMessage.content.message,
+                        queryText,
+                      ),
                       scrollPhysics: const NeverScrollableScrollPhysics(),
                     ),
           )
@@ -223,11 +230,11 @@ class ChatMessageItem extends StatelessWidget {
                 AnimatedSize(
                   alignment: Alignment.topCenter,
                   duration: const Duration(milliseconds: 390),
-                  child: SelectableText(
-                    message,
+                  child: SelectableText.rich(
+                    _buildHighlightedSpan(message, queryText),
                     scrollPhysics: const NeverScrollableScrollPhysics(),
                     maxLines: entireMessageVisible ? null : 3,
-                    style: TextStyle(overflow: TextOverflow.ellipsis),
+                    style: const TextStyle(overflow: TextOverflow.ellipsis),
                   ),
                 ),
                 Text(
@@ -242,6 +249,58 @@ class ChatMessageItem extends StatelessWidget {
             ),
           ),
     );
+  }
+
+  TextSpan _buildHighlightedSpan(String text, String? query) {
+    if (query == null || query.isEmpty) {
+      return TextSpan(text: text);
+    }
+
+    final spans = <InlineSpan>[];
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    int i = 0;
+
+    while (i < text.length) {
+      final matchIndex = lowerText.indexOf(lowerQuery, i);
+      if (matchIndex == -1) {
+        spans.add(TextSpan(text: text.substring(i)));
+        break;
+      }
+      if (matchIndex > i) {
+        spans.add(TextSpan(text: text.substring(i, matchIndex)));
+      }
+      spans.add(
+        WidgetSpan(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.yellow,
+                  AppColors.orange,
+                  AppColors.pink,
+                  AppColors.violet,
+                  AppColors.purple,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Text(
+              text.substring(matchIndex, matchIndex + query.length),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+      );
+      i = matchIndex + query.length;
+    }
+
+    return TextSpan(children: spans);
   }
 
   Widget get _attachments =>
